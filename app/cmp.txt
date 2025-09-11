@@ -1,0 +1,137 @@
+import ModeChange from '@/components/Toggle/ModeChange';
+import ThemeToggleSecond from '@/components/Toggle/ThemeToggle';
+import { useState } from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+
+
+import Iconify from 'react-native-iconify';
+
+
+
+
+
+export default function CMP() {
+  const [darkMode, setDarkMode] = useState(false);
+
+  return (
+
+      <View style={styles.container}>
+        <Text style={[styles.header, { color: darkMode ? '#E5E7EB' : '#1D4ED8' }]}>✅ Participant Dashboard Loaded</Text>
+
+        <View style={[styles.competitionContainer, { backgroundColor: darkMode ? '#1F2937' : '#F3F4F6' }]}>
+          {/* Header */}
+          <View style={styles.headerContainer}>
+            {/* Mode Change & Theme Toggle */}
+            <ModeChange darkMode={darkMode} setDarkMode={setDarkMode} />
+            <ThemeToggleSecond darkMode={darkMode} setDarkMode={setDarkMode} />
+          </View>
+
+          {/* Waypoint & Direction */}
+          <View style={styles.wpArrow}>
+            <Iconify icon="el:arrow-up" width={150} height={150} color={darkMode ? 'white' : 'black'}  />
+            <Text style={[styles.wpText, { color: darkMode ? '#FFFFFF' : '#000000' }]}>Waypoint: 3 | Angle: 45°</Text>
+          </View>
+
+          {/* Speed & ETA (Lower Right Corner) */}
+          <View style={[styles.statusBox, { backgroundColor: darkMode ? '#374151' : '#E5E7EB' }]}>
+            <Text style={[styles.statusText, { color: darkMode ? '#FFFFFF' : '#000000' }]}>
+              <Iconify icon="mdi:speedometer" style={styles.icon} /> Speed: 12 km/h
+            </Text>
+            <Text style={[styles.statusText, { color: darkMode ? '#FFFFFF' : '#000000' }]}>
+              <Iconify icon="mdi:clock-outline" style={styles.icon} /> Distance Left: 14 km
+            </Text>
+            <Text style={[styles.statusText, { color: darkMode ? '#FFFFFF' : '#000000' }]}>
+              <Iconify icon="mdi:clock-outline" style={styles.icon} /> ETA: 14 min
+            </Text>
+          </View>
+
+          {/* Emergency & Surrender Buttons */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]} onPress={() => alert('HELP')}>
+              <Iconify icon="mdi:alert-circle-outline" style={styles.icon} />
+              <Text style={styles.buttonText}>HELP</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]} onPress={() => alert('Surrender')}>
+              <Iconify icon="mdi:exit-run" style={styles.icon} />
+              <Text style={styles.buttonText}>Surrender</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  competitionContainer: {
+    width: '100%',
+    padding: 20,
+    borderRadius: 8,
+    marginTop: 10,
+  },
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 15,
+  },
+  wpArrow: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  wpText: {
+    marginTop: 10,
+    fontSize: 18,
+  },
+  statusBox: {
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  statusText: {
+    fontSize: 16,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  icon: {
+    color: '#FBBF24',
+    marginRight: 8,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-evenly',
+    width: '100%',
+    gap: 10,
+    marginTop: 20,
+  },
+  button: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+  },
+  buttonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+});
+

@@ -1,0 +1,25 @@
+✅ 2. Backend: Auto-Generating Event IDs in Laravel
+In your Laravel controller or model (during event creation), generate a short, unique Event ID:
+
+📍 Option A: UUID
+php
+Copy
+Edit
+use Illuminate\Support\Str;
+
+$event->event_id = Str::uuid(); // full UUID
+📍 Option B: Short Random Code
+php
+Copy
+Edit
+$event->event_id = strtoupper(Str::random(6)); // like "A3D9ZX"
+📍 Option C: Slug From Name
+php
+Copy
+Edit
+use Illuminate\Support\Str;
+
+$event->event_id = Str::slug($request->event_name) . '-' . rand(1000, 9999);
+// e.g. "trail-marathon-4839"
+You can then send this event_id back to the frontend as confirmation or QR display.
+

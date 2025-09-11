@@ -1,0 +1,145 @@
+import { Ionicons } from '@expo/vector-icons';
+import { getDistance } from 'geolib'; // To calculate distance between two points
+import React, { useEffect, useState } from 'react';
+import { Button, StyleSheet, Text, View } from 'react-native';
+import getBearing from './GPXfunction';
+
+
+
+const WaypointsScreen = () => {
+  const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
+  const [currentPosition, setCurrentPosition] = useState<Position | null>(null);
+  const [bearing, setBearing] = useState(0);
+  const [speed, setSpeed] = useState(10); // Example speed in km/h
+  const [distanceToNext, setDistanceToNext] = useState(0);
+  const [eta, setEta] = useState(0);
+
+  type Waypoint = {
+    name: string;
+    latitude: number;
+    longitude: number;
+  };
+
+  type Position = {
+    latitude: number;
+    longitude: number;
+  };
+
+ 
+
+  const fetchWP = async() => {
+    try{
+
+      // const res = await fetch('http://192.168.0.101:8000/api/waypoints', {
+      //   method: 'GET',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      // });
+
+      console.log("The fetching in process");
+
+      const response = await fetch('http://192.168.0.101:8000/api/GPX-GOT');
+      const data = await response.json();
+      
+      console.log('Waypoints:', data.waypoints);
+      console.log('TrackPoints:', data.trackPoints);
+      
+
+      setWaypoints(data);
+
+      if (data.length > 0) {
+        setCurrentPosition({
+          latitude: data[0].latitude,
+          longitude: data[0].longitude,
+        });
+      }
+
+    }catch(fetchERR) {
+      console.error('Error fetching waypoints:', fetchERR);
+      alert('fetching failed');
+    }
+  };
+   // Optionally load on mount
+   useEffect(() => {
+    fetchWP();
+  }, []);
+
+  useEffect( () => {
+    if (currentPosition && waypoints.length > 1) {
+      const nextWaypoint = waypoints[1]; // Assume the next waypoint is the second one
+      if (nextWaypoint) {
+        const bearingToNextWaypoint = getBearing(
+          currentPosition.latitude,
+          currentPosition.longitude,
+          nextWaypoint.latitude,
+          nextWaypoint.longitude
+        );
+        setBearing(bearingToNextWaypoint);
+
+        const distance = getDistance(
+          { latitude: currentPosition.latitude, longitude: currentPosition.longitude },
+          { latitude: nextWaypoint.latitude, longitude: nextWaypoint.longitude }
+        );
+        setDistanceToNext(distance / 1000); // Convert meters to kilometers
+
+        const etaInHours = distance / 1000 / speed; // ETA in hours
+        setEta(etaInHours * 60); // Convert to minutes
+      }
+    }
+  }, [currentPosition, waypoints, speed]);
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Direction to Next WP:</Text>
+
+      {/* Arrow showing direction to the next waypoint */}
+      {bearing !== 0 && (
+        <View style={styles.arrowContainer}>
+          <Ionicons
+            name="arrow-up-outline"
+            size={40}
+            color="blue"
+            style={{ transform: [{ rotate: `${bearing}deg` }] }}
+          />
+          <Text style={{ textAlign: 'center' }}>Direction</Text>
+        </View>
+      )}
+
+      {/* Display Distance, ETA, and Speed */}
+      <Text style={styles.text}>Distance to Next WP: {distanceToNext.toFixed(2)} km</Text>
+      <Text style={styles.text}>ETA: {eta.toFixed(2)} min</Text>
+      <Text style={styles.text}>Speed: {speed} km/h</Text>
+
+       {/* ✅ Button to fetch waypoints manually */}
+       <View style={{ marginTop: 20 }}>
+        <Button title="Fetch Waypoints" onPress={fetchWP} />
+      </View>
+
+
+      
+
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 10,
+  },
+  arrowContainer: {
+    alignItems: 'center',
+    marginTop: 30,
+  },
+  text: {
+    fontSize: 16,
+    marginVertical: 5,
+  },
+});
+
+export default WaypointsScreen;

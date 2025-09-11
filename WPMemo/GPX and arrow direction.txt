@@ -1,0 +1,48 @@
+2. Dual Arrows (Device Heading vs Waypoint)
+Show two arrows:
+
+Black = device heading (compass)
+
+Blue = direction to next waypoint
+
+tsx
+Copy
+Edit
+<View style={{ position: 'relative', width: 150, height: 150 }}>
+  {/* Device heading arrow */}
+  <Animated.View
+    style={{
+      position: 'absolute',
+      transform: [{ rotate: `${heading}deg` }],
+    }}
+  >
+    <MaterialCommunityIcons name="arrow-up-bold" size={100} color="black" />
+  </Animated.View>
+
+  {/* Waypoint direction arrow */}
+  <Animated.View
+    style={{
+      position: 'absolute',
+      transform: [{ rotate: `${waypointBearing}deg` }],
+    }}
+  >
+    <MaterialCommunityIcons name="arrow-up-bold" size={100} color="blue" />
+  </Animated.View>
+</View>
+This gives a cool "relative compass" feel — users can intuitively align the black arrow to the blue one to face the waypoint.
+
+🧠 3. Text + Distance Feedback
+Underneath the arrow, show info like:
+
+tsx
+Copy
+Edit
+<Text>Distance to waypoint: 85.3 m</Text>
+<Text>Turn angle: {relativeAngle.toFixed(1)}°</Text>
+You can get the distance using Haversine formula or a helper like:
+
+ts
+Copy
+Edit
+import haversine from 'haversine-distance';
+const distance = haversine(currentLocation, nextWaypoint); // in meters

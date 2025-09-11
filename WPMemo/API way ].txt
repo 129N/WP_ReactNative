@@ -1,0 +1,83 @@
+STEP-BY-STEP FUNCTION (React Native)
+Assume we’re tracking the currentPosition, waypoints, and currentWaypointIndex.
+
+tsx
+Copy
+Edit
+import haversine from 'haversine-distance';
+
+const [currentWaypointIndex, setCurrentWaypointIndex] = useState(0);
+
+// Call this whenever position updates (e.g., useEffect with GPS updates)
+const checkWaypointProximity = (position: Position) => {
+  if (currentWaypointIndex >= waypoints.length) return;
+
+  const currentWaypoint = waypoints[currentWaypointIndex];
+  const target = {
+    latitude: currentWaypoint.latitude,
+    longitude: currentWaypoint.longitude
+  };
+
+  const user = {
+    latitude: position.latitude,
+    longitude: position.longitude
+  };
+
+  const distance = haversine(user, target); // in meters
+
+  if (distance < 50) {
+    console.log(`✅ Reached WP ${currentWaypointIndex + 1}`);
+
+    // 1. Store timestamp + ETA in DB (call API)
+    sendWaypointArrivalData(currentWaypointIndex + 1);
+
+    // 2. Advance to next WP
+    const nextIndex = currentWaypointIndex + 1;
+    setCurrentWaypointIndex(nextIndex);
+
+    // 3. Update bearing
+    if (waypoints[nextIndex]) {
+      const bearingToNext = getBearing(
+        user.latitude,
+        user.longitude,
+        waypoints[nextIndex].latitude,
+        waypoints[nextIndex].longitude
+      );
+      setBearing(bearingToNext);
+    }
+  }
+};
+🧠 Helper: sendWaypointArrivalData()
+tsx
+Copy
+Edit
+const sendWaypointArrivalData = async (wpNumber: number) => {
+  const timestamp = new Date().toISOString();
+  const eta = new Date(); // ⬅️ Optionally calculate real ETA based on speed
+  
+  try {
+    await fetch('http://your-laravel-server/api/log-waypoint', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        participant_id: 123, // replace with actual ID
+        waypoint_number: wpNumber,
+        time_reached: timestamp,
+        estimated_arrival: eta.toISOString()
+      })
+    });
+
+    console.log(`📡 WP${wpNumber} reached data sent to server`);
+  } catch (err) {
+    console.error('❌ Failed to notify server:', err);
+  }
+};
+📍 Call checkWaypointProximity() in a useEffect whenever GPS updates
+tsx
+Copy
+Edit
+useEffect(() => {
+  if (currentPosition) {
+    checkWaypointProximity(currentPosition);
+  }
+}, [currentPosition]);
