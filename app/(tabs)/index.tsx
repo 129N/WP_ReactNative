@@ -1,6 +1,6 @@
 import { ThemedText } from '@/components/ThemedText';
 import HomeBTN from '@/components/ui/Home_BTN';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 
 export default function HomeScreen() {
  return (
@@ -8,9 +8,9 @@ export default function HomeScreen() {
 
    <View style={styles.container}>
 
-         <ThemedText type="subtitle"> Here is the button section </ThemedText>.
-      <Text>Explore kdkdkk ss</Text>
-      <HomeBTN title="Participant" color="#3B82F6" to="participant" />
+         <ThemedText type="subtitle"> Here is index.tsx </ThemedText>.
+
+    <HomeBTN title="Participant" color="#3B82F6" to="participant" />
       <HomeBTN title="Event Organizer (Admin)" color="#10B981" to="/admin_page/admin" />
       <HomeBTN title="Audience" color="#8B5CF6" to="/audience_folder/audience" />
      <HomeBTN title="WP_Button" color="#8B5CF6" to="/comp/WPScreen" />

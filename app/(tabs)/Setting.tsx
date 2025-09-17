@@ -1,15 +1,15 @@
-import { StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet } from 'react-native';
 
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+import ProfileScreen from '../Authentication/ProfileScreen';
 export default function Setting() {
     
 
     return (
-<ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-       
-      </ThemedView>
+      <ScrollView>
+
+        <ProfileScreen/> {/* from Authentication/ProfileScreen */}
+
+      </ScrollView>
 
     );
 }
