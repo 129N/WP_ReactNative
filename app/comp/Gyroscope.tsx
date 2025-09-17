@@ -180,7 +180,18 @@ export default function GyroscopeComponent(){
           <MaterialCommunityIcons name="exit-run" size={20} color="white" />
           <Text style={styles.buttonText}>Surrender</Text>
         </TouchableOpacity>
+
+          <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}>
+          <MaterialCommunityIcons name="exit-run" size={20} color="white" />
+          <Text style={styles.buttonText}>Surrender</Text>
+        </TouchableOpacity>
       </View>
+
+         {/* Back Buttons */}
+
+         <TouchableOpacity>
+            <Text style={styles.buttonText}>Back</Text>
+         </TouchableOpacity>
 
 
     </View>

@@ -1,5 +1,6 @@
 
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { getDistance } from 'geolib'; // To calculate distance between two points
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -174,6 +175,7 @@ useEffect( () => {
     }
   }, [currentPosition, waypoints, speed]);
 
+  const router = useRouter();
     return (
         <View style={styles.container}>
             
@@ -214,6 +216,15 @@ useEffect( () => {
                   <MaterialCommunityIcons name="exit-run" size={20} color="white" />
                   <Text style={styles.buttonText} onPress={surrender_notification}>Surrender</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity 
+                 style={[styles.button, { backgroundColor: '#EF4444' }]} // red
+                 onPress={() => router.push('/')}> 
+
+                <Text style={styles.buttonText}>Back to Login</Text>
+                </TouchableOpacity>
+
+
         </View>
 
     );
