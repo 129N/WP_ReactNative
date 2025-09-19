@@ -1,21 +1,25 @@
 
 import Header from '@/components/Header';
 import { Colors } from '@/constants/Colors';
-import { iconSize_dimension, spacing } from '@/constants/dimensions';
+import { fontSize, iconSize_dimension, spacing } from '@/constants/dimensions';
 
 import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 // Icon import 
-import { Feather } from '@expo/vector-icons';
+import { Entypo, Feather, MaterialIcons } from '@expo/vector-icons';
 
 //import Custom
 import CustomInput from '@/components/CustomInput';
+// Icon
+import { Ionicons } from '@expo/vector-icons';
 
 
 export default function ProfileScreen() {
     
 
     return (
-      <ScrollView>
+      <ScrollView 
+      style={styles.container}
+      contentContainerStyle= { {paddingBottom:2 * spacing.md}}>
          <Header/>
             <View style = {styles.container} >
                 
@@ -35,10 +39,44 @@ export default function ProfileScreen() {
             </View>
 
             <View style = {styles.InputFieldContainer}>
-                <CustomInput></CustomInput>
+
+                <CustomInput 
+                    label='Your Email' 
+                    placeholder ='Enter Your email'
+                    icon={<Ionicons name = {"mail-outline"} size={iconSize_dimension.md} 
+                    color={Colors.textPrimary.gray}  
+                    style = {styles.icon}/>} />
+                    
+                <CustomInput 
+                    label='Your Phone number' 
+                    placeholder ='Enter Your Phone'
+                    icon={<Entypo name = {"phone"} size={iconSize_dimension.md} 
+                    color={Colors.textPrimary.gray}  
+                    style = {styles.icon}/>} />
+
+
+                <CustomInput 
+                    label='Website' 
+                    placeholder ='WWW.XXX.COM'
+                    />
+
+                    <CustomInput 
+                    label='Password' 
+                    placeholder ='*********'
+                    icon={
+                    <MaterialIcons name = {"password"} size={iconSize_dimension.md} 
+                    color={Colors.textPrimary.gray}  
+                    style = {styles.icon}
+                    
+                    />} 
+                    type='password'
+                    />
+
+                    <TouchableOpacity style = {styles.logoutButton}>
+                        <Text style={styles.logoutText}>Logout </Text>
+                    </TouchableOpacity>
+
             </View>
-
-
 
 
       </ScrollView>
@@ -84,6 +122,23 @@ export default function ProfileScreen() {
 
         InputFieldContainer :{
 
+        },
+
+        icon:{
+            marginHorizontal : spacing.sm,
+            },
+
+        logoutButton:{
+            borderWidth: 1,
+            borderColor: Colors.orange.background,
+            padding:spacing.md,
+            alignItems: "center", 
+            justifyContent: "center", 
+            borderRadius: 10
+        },
+        logoutText:{
+            fontSize: fontSize.md,
+            color: Colors.orange.background,
         }
     })
 

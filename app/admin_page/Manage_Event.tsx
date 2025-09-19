@@ -3,13 +3,20 @@ import * as DocumentPicker from 'expo-document-picker';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+
+
+type GPX = {
+  name: string;
+}
+
+
 export default function EventForm() {
   const [eventId, setEventId] = useState('');
   const [eventName, setEventName] = useState('');
   const [description, setDescription] = useState('');
   const [eventDate, setEventDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [gpxFile, setGpxFile] = useState(null);
+  const [gpxFile, setGpxFile] = useState<GPX | null>(null);
 
   const pickGpxFile = async () => {
     const result = await DocumentPicker.getDocumentAsync({ type: '*/*' });

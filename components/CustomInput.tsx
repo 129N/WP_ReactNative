@@ -4,36 +4,73 @@
 
 import { Colors } from "@/constants/Colors";
 import { fontSize, iconSize_dimension, spacing } from "@/constants/dimensions";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { useState } from "react";
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 //icon
-import { Ionicons } from "@expo/vector-icons";
 
-export default function CustomInput(){
+
+type CustomInputProps ={
+label: string, 
+icon?: React.ReactNode, // any was not allowed
+placeholder: string,
+type? : string,
+};
+
+
+const CustomInput: React.FC<CustomInputProps> = ({label, icon, placeholder, type, ...rest}) => {
+
+        const [secureTextEntry, setSecureTextEntry] = useState(true)
+
 
     return (
 
         <View style = {styles.container}>
-            <Text style = {styles.inputLabel}>Your Email</Text>
+            <Text style = {styles.inputLabel}>{label}</Text>
             <View style = {styles.inputFieldContainer}>
-                <TextInput  style={styles.textInput}
-                    placeholder="Enter your email"
-                    keyboardType="email-address"/>
-                <Ionicons name = {"mail-outline"} size={iconSize_dimension.md} 
-                color={Colors.textPrimary.gray}  
-                style = {styles.icon}
-                /> {/* Imported from Colors.ts */}
 
+                {icon}
+                 {/* <Ionicons name = {"mail-outline"} size={iconSize_dimension.md} 
+                color={Colors.textPrimary.gray}  
+                style = {styles.icon}/> 
+                 */}
+                
+                {/* Imported from Colors.ts */}
+                <TextInput  
+                style={styles.textInput}
+                placeholder={placeholder}
+                placeholderTextColor={Colors.textPrimary.gray}
+                {...rest}
+                secureTextEntry={  type ==="password" && secureTextEntry}
+              keyboardType={type === "password" ? "default" : "email-address"} />
+
+                    {
+                        type ==="password" && (
+                            <TouchableOpacity onPress={() => 
+                                setSecureTextEntry(!secureTextEntry)}>
+
+                                <Feather name={secureTextEntry ? "eye" : "eye-off"} 
+                                    size={iconSize_dimension.md} 
+                                    color={Colors.textPrimary.gray}  
+                                    style = {styles.icon}
+                                />
+                            </TouchableOpacity>
+                        )
+                    }
             </View>
         </View>
     )
-}
+};
 
 const styles = StyleSheet.create({
-container : {},
+container : {
+    marginVertical: spacing.md,
+},
 inputLabel:{
     fontFamily:'Poppins-SemiBold', 
     fontSize: fontSize.md, 
     color : Colors.textPrimary.gray,
+    marginVertical: spacing.md,
 },
 
 inputFieldContainer:{
@@ -42,15 +79,20 @@ inputFieldContainer:{
     borderRadius: 12, 
     flexDirection: "row",
     alignItems : "center",
+    padding: spacing.sm,
 },
 icon:{
     marginHorizontal : spacing.sm,
 },
 textInput : {
-     flex: 1,
+    flex: 1,
     fontSize: 16,
     paddingVertical: 0, // removes default padding on Android
     marginLeft: 8, // space after the icon
 },
 
 });
+
+
+
+export default CustomInput;

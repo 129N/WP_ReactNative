@@ -15,7 +15,7 @@ export default function Participant(){
     return (
 
     <View style= {styles.container}> 
-        <Text style = {styles.header}>Administrator Loaded</Text>
+        <Text style = {styles.header}>Admin.tsx</Text>
             <View style = {styles.buttonContainer}>
                 <TouchableOpacity 
                  style={[styles.button, { backgroundColor: '#EF4444' }]} // red

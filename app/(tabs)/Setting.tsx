@@ -1,14 +1,12 @@
 import { ScrollView, StyleSheet } from 'react-native';
 
-import ProfileScreen from '../Authentication/ProfileScreen';
 export default function Setting() {
     
 
     return (
       <ScrollView>
 
-        <ProfileScreen/> {/* from Authentication/ProfileScreen */}
-
+        
       </ScrollView>
 
     );

@@ -1,7 +1,8 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-
+import { BASE_URL } from '../admin_page/newfileloader';
 
 export default function AuthScreen(){
     const [role, setRole] = useState<'admin' | 'competitor'>('competitor');
@@ -15,7 +16,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
       try{
 
         console.log('Registration is in the process');
-        const response = await fetch('http://192.168.0.101:8001/api/register', {
+        const response = await fetch(`${BASE_URL}/register`, {
           method: 'POST',
           headers: {
             'Accept': 'application/json',
@@ -34,8 +35,6 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
         if(response.ok){
           console.log('Registration has been succeeded');
 
-
-
         Alert.alert(
           'Registration Successful!',
           'Would you like to go to the login page?',
@@ -44,8 +43,6 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
             { text: 'OK', onPress: () => router.replace('/Authentication/Login') }, // adjust the route as needed
           ]
         );
-
-          
         
         }else{
           console.log('Failed', data);
@@ -56,11 +53,24 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
       }
     };
 
+
+
     const fetchText = async() => {
-          try{
-      const response = await fetch ('http://192.168.0.101:8001/api/registered_users');
-       const data = await response.json();
-  
+
+    // after login or register (backend returns token)
+    const token = await AsyncStorage.getItem('token');
+
+      try{
+        const response = await fetch (`${BASE_URL}/registered_users`,{
+          headers : {
+            Authorization: `Bearer ${token}`,
+            Accept: 'application/json',
+          },
+      });
+    const data = await response.json();
+
+      await AsyncStorage.setItem('token', data.token );
+
         if(response.ok){
 
         console.log("Fetched user:", data.users);
@@ -80,8 +90,13 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
           console.log('Delete is in the process');
 
   try {
-    const response = await fetch('http://192.168.0.101:8001/api/delete_user', {
-      method: 'POST',
+    const response = await fetch(`${BASE_URL}/registered_users`, {
+      method: 'DELETE',
+      headers:{
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({email, password, role}),
     });
 
     const result = await response.json();

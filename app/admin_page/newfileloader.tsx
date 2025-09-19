@@ -1,4 +1,5 @@
 import { ThemedText } from '@/components/ThemedText';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as DocumentPicker from 'expo-document-picker';
 import { XMLParser } from 'fast-xml-parser';
 import React, { useState } from 'react';
@@ -22,6 +23,8 @@ type TrackPoint = {
   longitude: number;
   elevation?: number;
 };
+
+export const BASE_URL = 'http://192.168.0.103:8001/api';
 
 const GPXLoader = () => {
 
@@ -147,11 +150,16 @@ const GPXLoader = () => {
             type: 'application/gpx+xml',
           } as any);
 
-          const response = await fetch('http://192.168.0.101:8001/api/gpx-upload', {
+//Token for auth:sanctum
+// get token from storage
+          const token = await AsyncStorage.getItem('token');
+
+          const response = await fetch(`${BASE_URL}/gpx-upload`, {
               method: 'POST',
-                body: formData,
+              body: formData,
               headers: {
-            'Content-Type': 'multipart/form-data',
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data',
               },
           
             });
@@ -174,8 +182,16 @@ const handleDelete = async () => {
           console.log('Delete is in the process');
 
   try {
-    const response = await fetch('http://192.168.0.101:8001/api/delete', {
+
+//Token for auth:sanctum
+// get token from storage
+    const token = await AsyncStorage.getItem('token');
+
+    const response = await fetch(`${BASE_URL}//delete`, {
       method: 'POST',
+      headers:{
+        Authorization: `Bearer ${token}`, // add token
+      },
     });
 
     const result = await response.json();
