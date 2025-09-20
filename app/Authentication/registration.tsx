@@ -11,8 +11,10 @@ export default function AuthScreen(){
     const router = useRouter();
 
 const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string } []>([]);
-
+//export const BASE_URL = 'http://192.168.0.103:8001/api';
     const handleregister = async () => {
+
+      //Registration here
       try{
 
         console.log('Registration is in the process');
@@ -54,64 +56,79 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
     };
 
 
-
+    //Data fetching here
     const fetchText = async() => {
 
-    // after login or register (backend returns token)
-    const token = await AsyncStorage.getItem('token');
+      // after login or register (backend returns token)
+      const token = await AsyncStorage.getItem('token');
 
-      try{
-        const response = await fetch (`${BASE_URL}/registered_users`,{
-          headers : {
-            Authorization: `Bearer ${token}`,
-            Accept: 'application/json',
-          },
-      });
-    const data = await response.json();
+        try{
+          const response = await fetch (`${BASE_URL}/registered_users`,{
+            headers : {
+              Authorization: `Bearer ${token}`,
+              Accept: 'application/json',
+            },
+        });
+      const data = await response.json();
+          if(response.ok){
 
-      await AsyncStorage.setItem('token', data.token );
-
-        if(response.ok){
-
-        console.log("Fetched user:", data.users);
+          console.log("Fetched user:", data.users);
             setFetchedUser(data.users);
-          alert('Fetching successful');
+            alert('Fetching successful');
 
-        } else {
-      console.warn("Failed to fetch:", data);
-    }
-      
-      } catch(geterr){
-        console.log('The GET mwthod', geterr)
-      }
+          } else {
+            console.warn("Failed to fetch:", data);
+          }
+        } 
+        catch(geterr){
+          console.log('The GET mwthod', geterr)
+        }
     };
 
-    const handleDelete = async () => {
+
+    //De;ete data process
+  const handleDelete = async () => {
           console.log('Delete is in the process');
 
-  try {
-    const response = await fetch(`${BASE_URL}/registered_users`, {
-      method: 'DELETE',
-      headers:{
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({email, password, role}),
-    });
+          const token = await AsyncStorage.getItem('token');
+      try {
+        const response = await fetch(`${BASE_URL}/registered_users`, {
+          method: 'DELETE',
+          headers:{
+            Accept: 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({email, password, role}),
+        });
 
-    const result = await response.json();
+        const result = await response.json();
 
-    if (response.ok) {
-      console.log('Data deleted successfully!');
-      alert('Data deleted successfully!');
-    } else {
-      console.error('Delete failed:', result);
-      alert('Error deleting data');
-    }
-  } catch (error) {
-    console.error('Request failed:', error);
-    alert('Failed to connect to server');
-  }
+        if (response.ok) {
+          console.log('Data deleted successfully!');
+          alert('Data deleted successfully!');
+        } else {
+          console.error('Delete failed:', result);
+          alert('Error deleting data');
+        }
+      } catch (error) {
+        console.error('Request failed:', error);
+        alert('Failed to connect to server');
+      }
+};
+
+
+const TEST = async ()=> {
+try {
+  console.log("We are connecting");
+  const res = await fetch(`${BASE_URL}/ping`);
+  const text = await res.text();
+      console.log('PING:', text);
+
+} catch (err) {
+  console.error(err);
+    console.log("FAIL");
+}
+
 };
 
    
@@ -119,7 +136,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
       return (
 
 <View style={styles.container}>
-<Text style={styles.sectionTitle}>Registration </Text>
+  <Text style={styles.sectionTitle}>Registration.tsx </Text>
   
   <Text style={styles.sectionTitle}>Select Role:</Text>
   
@@ -175,6 +192,11 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
         <Text style={styles.buttonText}>Fetch</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity style={styles.button} onPress={TEST}>
+        <Text style={styles.buttonText}>Connection Test</Text>
+      </TouchableOpacity>
+
+
 
       
       <View style={styles.result}>
@@ -182,7 +204,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
 
         <Text style={styles.title}>The result Users </Text>
 
-          {fetchedUser ? (
+          {fetchedUser.length > 0 ? (
               fetchedUser.map((users, index) => (
                 <View key={index} style={styles.userCard}>
                   <Text style={styles.userText}>📧 {users.email}</Text>
@@ -223,7 +245,7 @@ const styles = StyleSheet.create({
     },
     roleText:{
         fontSize: 16,
-        color: 'white',
+        color: 'black',
     },
 
     buttonContainer: {

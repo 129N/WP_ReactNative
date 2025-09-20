@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, } from "react-native";
-
+import { BASE_URL } from '../admin_page/newfileloader';
 export default function AuthScreen(){
     const [role, setRole] = useState<'admin' | 'competitor'>('competitor');
     const [email, setEmail] = useState('');
@@ -27,7 +27,7 @@ export default function AuthScreen(){
             }
 
                                  
-          const response = await fetch('http://192.168.0.101:8001/api/login_react',{
+          const response = await fetch(`${BASE_URL}/login_react`,{
              method: 'POST',
              headers: {
                 'Accept': 'application/json',
@@ -75,7 +75,7 @@ export default function AuthScreen(){
     
         const fetchRegisteredUsers = async () => {
             try {
-              const response = await fetch('http://192.168.0.101:8001/api/registered_users');
+              const response = await fetch(`${BASE_URL}/registered_users`);
               const data = await response.json();
 
               if (response.ok) {
@@ -92,7 +92,8 @@ export default function AuthScreen(){
       return (
 
 <View style={styles.container}>
-  <Text style={styles.sectionTitle}>Select Role:</Text>
+  <Text style={styles.Main_Tiltle }> Login.tsx</Text>
+  <Text style={styles.sectionTitle}>Select Role :</Text>
   
   <View style={styles.roleContainer}>
     <TouchableOpacity 
@@ -169,15 +170,6 @@ export default function AuthScreen(){
           )}
         </ScrollView>
 
-
-
-
-
-
-
-
-
-
     </View>
 
 </View>
@@ -189,6 +181,13 @@ const styles = StyleSheet.create({
       padding: 20,
       flex: 1,
       backgroundColor: '#f5f5f5',
+    },
+    Main_Tiltle:{
+      alignItems:"center",
+      justifyContent : "center",
+      fontWeight: "bold",
+      fontSize: 24,
+      color: '#333',
     },
     sectionTitle: {
         fontSize: 18,

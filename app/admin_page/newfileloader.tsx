@@ -24,7 +24,10 @@ type TrackPoint = {
   elevation?: number;
 };
 
-export const BASE_URL = 'http://192.168.0.103:8001/api';
+//export const BASE_URL = 'http://192.168.0.103:8001/api';
+//export const BASE_URL = 'http://192.168.0.103/api';
+//export const BASE_URL = 'https://abc123.ngrok.io/api';
+export const BASE_URL = 'https://44d199ff65f2.ngrok-free.app/api';
 
 const GPXLoader = () => {
 

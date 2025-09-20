@@ -36,11 +36,11 @@ export default function Participant(){
                 <Text style={styles.buttonText}>Participate in competition</Text> 
                 </TouchableOpacity>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#10B981' }]} // green
                   onPress={() => router.push('/Authentication/registration')}>
                   <Text style={styles.buttonText}>Registration</Text>
-                  </TouchableOpacity>
+                  </TouchableOpacity> */}
 
                   
                 {/* <TouchableOpacity
