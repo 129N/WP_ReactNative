@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet } from 'react-native';
+import { ScrollView, StyleSheet, Text } from 'react-native';
 
 export default function Setting() {
     
@@ -6,6 +6,8 @@ export default function Setting() {
     return (
       <ScrollView>
 
+
+        <Text>Setting is here</Text>
         
       </ScrollView>
 

@@ -14,7 +14,16 @@ export default function TabLayout() {
         }}
       />
           <Tabs.Screen name="profile" options={{title : 'Account'}}/>
+          <Tabs.Screen name="Setting"  options={{title : 'Setting'}} />
       </Tabs>
+
+
+// <Stack.Navigator screenOptions={{
+//   headerShown: false
+// }}> 
+
+
+// </Stack.Navigator>
 
 
 

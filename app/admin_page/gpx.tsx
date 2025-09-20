@@ -5,6 +5,9 @@ import React, { useEffect, useState } from 'react';
 import { Button, Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 import getBearing from '../comp/GPXfunction';
+
+// Base URL  
+import { BASE_URL } from './newfileloader';
 export default function GpxLoader() {
 
   const [trackPoints, setTrackPoints] = useState<any[]>([]);
@@ -52,7 +55,7 @@ export default function GpxLoader() {
         } as any);
 
         try {
-          const response = await fetch('http://192.168.0.101:8000/api/upload-gpx',{
+          const response = await fetch(`${BASE_URL}/upload-gpx`,{
             method: 'POST',
             body: formData,
           });

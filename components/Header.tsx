@@ -4,12 +4,18 @@ import React from "react";
 
 import { iconSize_dimension } from "@/constants/dimensions";
 import { Ionicons, Octicons } from "@expo/vector-icons";
+import { useNavigation } from "expo-router";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+
 
 
 
 export default function Header(){
 
+const navigation = useNavigation();
+const handleOpenSettng=() =>{
+// navigation.navigate(Setting.tsx)
+};
 
     const style = StyleSheet.create({
         container: {
@@ -32,7 +38,7 @@ export default function Header(){
                     <Ionicons name={"arrow-back"} color={"#00000"} size = {iconSize_dimension.md} /> {/* from constants*/ }
                 </TouchableOpacity>
 
-                <TouchableOpacity>
+                <TouchableOpacity onPress={handleOpenSettng}>
                     <Octicons name = {"gear"} color={"#00000"} size = {iconSize_dimension.md} />
                 </TouchableOpacity>
 
