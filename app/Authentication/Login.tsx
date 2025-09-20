@@ -18,20 +18,19 @@ export default function AuthScreen(){
 
     const handleLogin = async () => {
         //setStep('code');
-
-        try{
+      try{
             if (!role) {
               console.warn("Role is not defined");
               alert("Please select a role");
               return;
             }
 
-                                 
+            // goes to AuthController.php
           const response = await fetch(`${BASE_URL}/login_react`,{
              method: 'POST',
              headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
+              'Content-Type': 'application/json',
+                Accept: 'application/json',
             },
             body: JSON.stringify({
                 email,  // email input value
@@ -41,18 +40,20 @@ export default function AuthScreen(){
           });
 
           const data = await response.json();
+          const token = data.token;
 
           if (response.ok) {
-            const token = data.token;
+   
+            await AsyncStorage.setItem('authToken', token);
+            await AsyncStorage.setItem('userRole', data.role);
 
              if (!token) {
                 console.warn("Token not returned by API");
                 alert("Login failed. Token not received.");
                 return;
             }
-
-
-            await AsyncStorage.setItem('authToken', token);
+            
+            alert('Logged in as ' + data.user.role);
             console.log("Login Success:", token);
 
                 if (role === 'admin') {
@@ -67,13 +68,15 @@ export default function AuthScreen(){
              alert(data.message || "Login failed. Please check your credentials.");
           }
 
-        }catch(error){
-          console.log("Error logging in:", error);
-            alert("An error occurred. Please try again later.");
         }
-    };
+          catch(error){
+            console.log("Error logging in:", error);
+              alert("An error occurred. Please try again later.");
+          }
+      };
     
-        const fetchRegisteredUsers = async () => {
+
+      const fetchRegisteredUsers = async () => {
             try {
               const response = await fetch(`${BASE_URL}/registered_users`);
               const data = await response.json();

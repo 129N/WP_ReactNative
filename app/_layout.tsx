@@ -1,6 +1,7 @@
+import Header from '@/components/Header';
 import { useFonts } from 'expo-font';
 import { Slot } from 'expo-router';
-import { Dimensions, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
 
 export default function RootLayout() {
@@ -21,16 +22,26 @@ const { width, height, fontScale } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: { flex: 1,  width: width, height: height},
-  header: {  height: height * 0.1, backgroundColor: '#3B82F6', justifyContent: 'center', alignItems: 'center' },
+  outer: {  height: height * 0.1, backgroundColor: '#29497cff', justifyContent: 'center', alignItems: 'center' },
   headerText: { color: 'white', fontSize: fontScale },
+  header:{flexDirection: 'row',
+ justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 16, // add space between icons
+    paddingHorizontal: 16,
+    marginTop : 15}
 });
 
   return (
 
     <ScrollView contentContainerStyle={{flexGrow: 1}}>
       {/* This header appears on every screen in this layout */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>My Global Header</Text>
+      <View style={styles.outer}>
+
+          <View style= {styles.header}>
+                <Header/>
+          </View>
+
       </View>
 
       {/* Child routes go here */}

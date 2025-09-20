@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
 
-
 type Waypoint = {
   name: string;
   latitude: number;
@@ -170,7 +169,6 @@ const GPXLoader = () => {
           const result = await response.json();
           console.log('Upload success:', result);
           alert('File uploaded to backend successfully!');
-
         
     }
     
@@ -190,7 +188,7 @@ const handleDelete = async () => {
 // get token from storage
     const token = await AsyncStorage.getItem('token');
 
-    const response = await fetch(`${BASE_URL}//delete`, {
+    const response = await fetch(`${BASE_URL}/delete`, {
       method: 'POST',
       headers:{
         Authorization: `Bearer ${token}`, // add token
@@ -217,7 +215,10 @@ const handleDelete = async () => {
 
 
   return (
+
+
     <View style={styles.container}>
+    
       <ThemedText type="subtitle">NEWfileloader</ThemedText>
       <Button title="Load GPX File" onPress={pickFile} />
 
@@ -263,9 +264,6 @@ const handleDelete = async () => {
 
         </MapView>
 
-   
-
-        
       ) : (
         <ThemedText type="title">No GPX file loaded yet.</ThemedText>
       )}
