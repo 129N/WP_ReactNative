@@ -41,11 +41,12 @@ export default function AuthScreen(){
 
           const data = await response.json();
           const token = data.token;
+          const roleFromApi = data.user.role;
 
           if (response.ok) {
    
             await AsyncStorage.setItem('authToken', token);
-            await AsyncStorage.setItem('userRole', data.role);
+            await AsyncStorage.setItem('userRole', roleFromApi);
 
              if (!token) {
                 console.warn("Token not returned by API");
@@ -53,7 +54,7 @@ export default function AuthScreen(){
                 return;
             }
             
-            alert('Logged in as ' + data.user.role);
+            alert('Logged in as ' + roleFromApi);
             console.log("Login Success:", token);
 
                 if (role === 'admin') {

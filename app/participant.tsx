@@ -1,7 +1,4 @@
 
-
-
-
 // import AppLayout from '@/layouts/app-layout'; 
 
 import { useRouter } from 'expo-router';
@@ -27,9 +24,14 @@ export default function Participant(){
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
                 onPress={() => router.push('/Authentication/Login')}>
-                <Text style={styles.buttonText}>Participate Regsitration</Text>
+                <Text style={styles.buttonText}> Regsitration</Text>
                 </TouchableOpacity>
 
+                
+
+
+              {/* {This Gyroscope is used in competion } */}
+              {/* {Later this will be removed } */}
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
                 onPress={() => router.push('/comp/Gyroscope')}>
