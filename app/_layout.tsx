@@ -1,4 +1,5 @@
 import Header from '@/components/Header';
+import Responsive from '@/components/Responsive';
 import { useFonts } from 'expo-font';
 import { Slot } from 'expo-router';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
@@ -22,7 +23,7 @@ const { width, height, fontScale } = Dimensions.get('window');
 
 const styles = StyleSheet.create({
   container: { flex: 1,  width: width, height: height},
-  outer: {  height: height * 0.1, backgroundColor: '#29497cff', justifyContent: 'center', alignItems: 'center' },
+  outer: {  height: height * 0.2, backgroundColor: '#29497cff', justifyContent: 'center', alignItems: 'center' },
   headerText: { color: 'white', fontSize: fontScale },
   header:{flexDirection: 'row',
  justifyContent: 'space-between',
@@ -41,7 +42,7 @@ const styles = StyleSheet.create({
           <View style= {styles.header}>
                 <Header/>
           </View>
-
+              <Responsive/>
       </View>
 
       {/* Child routes go here */}
