@@ -16,14 +16,14 @@ export default function Participant(){
             <View style = {styles.buttonContainer}>
                 <TouchableOpacity 
                  style={[styles.button, { backgroundColor: '#EF4444' }]} // red
-                 onPress={() => router.push('/')}> 
+                 onPress={() => router.push('../')}> 
 
                 <Text style={styles.buttonText}>Back to Login</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
-                onPress={() => router.push('/Authentication/Login')}>
+                onPress={() => router.push('../Authentication/registration')}>
                 <Text style={styles.buttonText}> Regsitration</Text>
                 </TouchableOpacity>
 
@@ -34,7 +34,7 @@ export default function Participant(){
               {/* {Later this will be removed } */}
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
-                onPress={() => router.push('/comp/Gyroscope')}>
+                onPress={() => router.push('../comp/Gyroscope')}>
                 <Text style={styles.buttonText}>Participate in competition</Text> 
                 </TouchableOpacity>
 
@@ -54,14 +54,14 @@ export default function Participant(){
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#8B5CF6' }]} // purple
-                  onPress={() => router.push('/admin_page/newfileloader')}
+                  onPress={() => router.push('../admin_page/newfileloader')}
                 >
                   <Text style={styles.buttonText}>New File load</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#8B5CF6' }]} // purple
-                  onPress={() => router.push('/comp/WPScreen')}
+                  onPress={() => router.push('../comp/WPScreen')}
                 >
                   <Text style={styles.buttonText}>Waypoint Screen</Text>
                 </TouchableOpacity>

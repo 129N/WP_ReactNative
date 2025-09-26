@@ -14,7 +14,7 @@ export default function Header(){
 const navigation = useNavigation();
   const router = useRouter();
 
-const handleOpenSettng=() =>{
+const handleOpenSettng = () =>{
 // navigation.navigate(Setting.tsx)
 };
 

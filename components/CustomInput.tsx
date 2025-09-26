@@ -6,11 +6,11 @@ import { Colors } from "@/constants/Colors";
 import { fontSize, iconSize_dimension, spacing } from "@/constants/dimensions";
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, View } from "react-native";
 //icon
 
 
-type CustomInputProps ={
+type CustomInputProps = TextInputProps & {
 label: string, 
 icon?: React.ReactNode, // any was not allowed
 placeholder: string,
@@ -40,16 +40,18 @@ const CustomInput: React.FC<CustomInputProps> = ({label, icon, placeholder, type
                 style={styles.textInput}
                 placeholder={placeholder}
                 placeholderTextColor={Colors.textPrimary.gray}
-                {...rest}
                 secureTextEntry={  type ==="password" && secureTextEntry}
-              keyboardType={type === "password" ? "default" : "email-address"} />
+                keyboardType={type === "password" ? "default" : "email-address"} 
+                {...rest} 
+         />
 
                     {
                         type ==="password" && (
                             <TouchableOpacity onPress={() => 
                                 setSecureTextEntry(!secureTextEntry)}>
 
-                                <Feather name={secureTextEntry ? "eye" : "eye-off"} 
+                                <Feather 
+                                    name={secureTextEntry ? "eye" : "eye-off"} 
                                     size={iconSize_dimension.md} 
                                     color={Colors.textPrimary.gray}  
                                     style = {styles.icon}

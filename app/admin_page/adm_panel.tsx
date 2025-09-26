@@ -22,26 +22,26 @@ export default function admin_panel(){
             <View style= {styles.buttonContainer}> 
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#EF4444' }]} // red
-                    onPress={() => router.push('/')}>
+                    onPress={() => router.push('../')}>
                     <Text style={styles.buttonText}>Back to Login</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
-                    onPress={() => router.push('/admin_page/newfileloader')}> {/* upload GPX  GPX_Processor */}
+                    onPress={() => router.push('../admin_page/newfileloader')}> {/* upload GPX  GPX_Processor */}
                     <Text style={styles.buttonText}>Upload GPX File</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#10B981' }]} // green
-                    onPress={() => router.push('/admin_page/Manage_Event')}
+                    onPress={() => router.push('../admin_page/Manage_Event')}
                 >
                     <Text style={styles.buttonText}>Manage Events(event table creatin)</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#fbff00ff' }]} // green
-                    onPress={() => router.push('/admin_page/adm_Datalist')}
+                    onPress={() => router.push('../admin_page/adm_Datalist')}
                 >
                     <Text style={styles.buttonText}>Participant LIst</Text>
                 </TouchableOpacity>

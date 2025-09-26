@@ -19,28 +19,28 @@ export default function Participant(){
             <View style = {styles.buttonContainer}>
                 <TouchableOpacity 
                  style={[styles.button, { backgroundColor: '#EF4444' }]} // red
-                 onPress={() => router.push('/')}
+                 onPress={() => router.push('../')}
                 > 
                 <Text style={styles.buttonText}>Back to Login</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
-                onPress={() => router.push('/Authentication/Login')}>
+                onPress={() => router.push('../admin_page/EventCreation')}>
                 <Text style={styles.buttonText}>Create Event</Text>
                 </TouchableOpacity>
 
 
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
-                onPress={() => router.push('/admin_page/adm_panel')}>
+                onPress={() => router.push('../admin_page/adm_panel')}>
                 <Text style={styles.buttonText}>After Create Event(Admin Paenl)</Text>
                 </TouchableOpacity>
                 
                 {/* Create Map, Detail input */}
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#10B981' }]} // green
-                  onPress={() => router.push('/Authentication/Login')}>
+                  onPress={() => router.push('../Authentication/Login')}>
                   <Text style={styles.buttonText}>View Map </Text> 
                   <Text style={styles.buttonText}>View Map </Text> 
                 </TouchableOpacity>

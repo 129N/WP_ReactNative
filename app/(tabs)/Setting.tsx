@@ -7,7 +7,7 @@ export default function Setting() {
       <ScrollView>
 
 
-        <Text>Setting is here</Text>
+        <Text>logout page</Text>
         
       </ScrollView>
 

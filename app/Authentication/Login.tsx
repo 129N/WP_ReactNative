@@ -60,9 +60,9 @@ export default function AuthScreen(){
             console.log("Login Success:", token);
 
                 if (role === 'admin') {
-                router.push('/admin_page/admin'); // Route to admin screen
+                router.push('../admin_page/admin'); // Route to admin screen
                 } else {
-                    router.push('/participant'); // Route to participant screen
+                    router.push('../participant'); // Route to participant screen
                 }
 
           } else {
@@ -154,7 +154,7 @@ export default function AuthScreen(){
         <Text style={styles.buttonText}>Next</Text>
       </TouchableOpacity>
       <Text style={styles.sentence}> If you do not have your account</Text>
-      <TouchableOpacity style={styles.button_red} onPress={() => router.push('/Authentication/registration')}>
+      <TouchableOpacity style={styles.button_red} onPress={() => router.push('../Authentication/registration')}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
 
