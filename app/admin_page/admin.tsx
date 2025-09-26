@@ -26,7 +26,7 @@ export default function Participant(){
 
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
-                onPress={() => router.push('/Authentication/login_admin')}>
+                onPress={() => router.push('/Authentication/Login')}>
                 <Text style={styles.buttonText}>Create Event</Text>
                 </TouchableOpacity>
 

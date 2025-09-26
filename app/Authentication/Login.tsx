@@ -40,20 +40,22 @@ export default function AuthScreen(){
           });
 
           const data = await response.json();
-          const token = data.token;
-          const roleFromApi = data.user.role;
 
           if (response.ok) {
-   
-            await AsyncStorage.setItem('authToken', token);
-            await AsyncStorage.setItem('userRole', roleFromApi);
 
+            const token = data.token;
+            const roleFromApi = data.user.role;
+   
+         
              if (!token) {
                 console.warn("Token not returned by API");
                 alert("Login failed. Token not received.");
                 return;
             }
             
+            await AsyncStorage.setItem('authToken', token);
+            await AsyncStorage.setItem('userRole', roleFromApi);
+
             alert('Logged in as ' + roleFromApi);
             console.log("Login Success:", token);
 

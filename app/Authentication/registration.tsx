@@ -11,7 +11,7 @@ export default function AuthScreen(){
     const router = useRouter();
 
 const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string } []>([]);
-//export const BASE_URL = 'http://192.168.0.103:8001/api';
+//export const BASE_URL = ngrok from http8
     const handleregister = async () => {
 
       //Registration here

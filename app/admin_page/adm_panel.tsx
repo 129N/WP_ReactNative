@@ -13,7 +13,7 @@ export default function admin_panel(){
     <View style={styles.TITLE} >
 
  
-        <ThemedText type="title">Welcome! This is the admin panel</ThemedText>
+        <ThemedText type="title">adm_panel.tsx</ThemedText>
         
     </View>
     <Text style = {styles.header}> Admin Dash Board</Text>
@@ -36,8 +36,17 @@ export default function admin_panel(){
                     style={[styles.button, { backgroundColor: '#10B981' }]} // green
                     onPress={() => router.push('/admin_page/Manage_Event')}
                 >
-                    <Text style={styles.buttonText}>Manage Events</Text>
+                    <Text style={styles.buttonText}>Manage Events(event table creatin)</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#fbff00ff' }]} // green
+                    onPress={() => router.push('/admin_page/adm_Datalist')}
+                >
+                    <Text style={styles.buttonText}>Participant LIst</Text>
+                </TouchableOpacity>
+
+
 
               
                 
