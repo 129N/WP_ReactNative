@@ -44,6 +44,7 @@ export default function ProfileScreen() {
         loadUserInfo();
     }, []);
 
+
 //handles Login System 
     const handleLogin = async () => {
         //setStep('code');
@@ -124,10 +125,10 @@ export default function ProfileScreen() {
             }
 
             //call backend (Laravel)
-             const response = await fetch(`${BASE_URL}/login_react`,{
+             const response = await fetch(`${BASE_URL}/logout`,{
                          method: 'POST',
                          headers: {
-                          'Content-Type': 'application/json',
+                            Authorization : `Bearer ${token}`, // It is needed to authenticate btw the server and the client.
                             Accept: 'application/json',
                         },
             });
@@ -138,8 +139,9 @@ export default function ProfileScreen() {
                 await AsyncStorage.removeItem('userEmail');
                 setIsLoggedIn(false);
                 Alert.alert('Logged out !');
-                router.replace('../');
+                router.replace('../Setting');
             } else{
+                console.log("Token : " + response); // the [Object object] had shown mismatch of token. 
                 Alert.alert('Logout failed. please try again');
             }
         }
@@ -159,7 +161,12 @@ export default function ProfileScreen() {
             <View style = {styles.container} >
                 
                 <View style = {styles.ProfileImageContainer}>
-                    <Image source={require("@/assets/images/Fugen.png")} style = {styles.ProfileImage}/>
+                    { isLoggedin ? 
+                        (
+                        <Image style = {styles.ProfileImage} source={require("@/assets/images/Fugen.png")} />
+                        ):
+                        <Ionicons name={"person-circle"} color={"#00000"} size = {iconSize_dimension.lg * 5} /> 
+                    } 
                 </View>
 
                 <TouchableOpacity style = {styles.editIconCOntainer}>
@@ -169,8 +176,9 @@ export default function ProfileScreen() {
             </View>
 
             <View style = {styles.nameRolecontainer}>
-                <Text style = {styles.name}> {isLoggedin ? userEmail : "Guest"} </Text>
-                <Text style = {styles.role}> {isLoggedin ? userRole : "NOt Logged In"} </Text>
+
+                <Text style = {styles.name}>  Role : {isLoggedin ? userEmail : "Guest"} </Text>
+                <Text style = {styles.role}> Account : {isLoggedin ? userRole : "Not Logged In"} </Text>
             </View>
 
             <View style = {styles.InputFieldContainer}>
