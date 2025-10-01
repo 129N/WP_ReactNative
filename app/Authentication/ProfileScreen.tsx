@@ -28,6 +28,8 @@ export default function ProfileScreen() {
     const [isLoggedin, setIsLoggedIn] = useState(false);
     const [userEmail, setUserEmail] = useState ('');
     const [userRole, setUserRole] = useState('');
+    const [userName, setUserName] = useState('');
+
     const router = useRouter();
 
     //AsynchStorage
@@ -37,9 +39,11 @@ export default function ProfileScreen() {
             const token = await AsyncStorage.getItem('authToken');
             const email = await AsyncStorage.getItem('userEmail');
             const role = await AsyncStorage.getItem('userRole');
+            const name = await AsyncStorage.getItem('name');
             setIsLoggedIn(!!token);
             setUserEmail(email || '');
             setUserRole(role || '');
+            setUserName(name || '' );
         };
         loadUserInfo();
     }, []);
@@ -78,6 +82,8 @@ export default function ProfileScreen() {
 
             const token = data.token;
             const roleFromApi = data.user.role;
+            const userName = data.user.name;
+            const email = data.user.email;
    
          
              if (!token) {
@@ -86,13 +92,15 @@ export default function ProfileScreen() {
                 return;
             }
             
+            await AsyncStorage.setItem('userEmail', email);
             await AsyncStorage.setItem('authToken', token);
             await AsyncStorage.setItem('userRole', roleFromApi);
+            await AsyncStorage.setItem('name', userName);
 
             alert('Logged in as ' + roleFromApi);
             console.log("Login Success:", token);
 
-                if (role === 'admin') {
+                if (roleFromApi === 'admin') { // role is also ok.
                 router.push('../admin_page/admin'); // Route to admin screen
                 } else {
                     router.push('../'); // Route to participant screen
@@ -137,6 +145,7 @@ export default function ProfileScreen() {
                 await AsyncStorage.removeItem('authToken');
                 await AsyncStorage.removeItem('userRole');
                 await AsyncStorage.removeItem('userEmail');
+                await AsyncStorage.removeItem('name');
                 setIsLoggedIn(false);
                 Alert.alert('Logged out !');
                 router.replace('../Setting');
@@ -177,8 +186,10 @@ export default function ProfileScreen() {
 
             <View style = {styles.nameRolecontainer}>
 
-                <Text style = {styles.name}>  Role : {isLoggedin ? userEmail : "Guest"} </Text>
+                <Text style = {styles.name}>  Role : {isLoggedin ? userEmail : "Email"} </Text>
                 <Text style = {styles.role}> Account : {isLoggedin ? userRole : "Not Logged In"} </Text>
+                    <Text style = {styles.name}> Name  : {isLoggedin ? userName : "Guest"} </Text>
+                
             </View>
 
             <View style = {styles.InputFieldContainer}>

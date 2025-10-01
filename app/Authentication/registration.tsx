@@ -8,9 +8,10 @@ export default function AuthScreen(){
     const [role, setRole] = useState<'admin' | 'competitor'>('competitor');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [name, setName] = useState('');
     const router = useRouter();
 
-const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string } []>([]);
+const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string, name?: string } []>([]);
 //export const BASE_URL = ngrok from http8
     const handleregister = async () => {
 
@@ -29,6 +30,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
               email,
               password,
               role, //admin or competitor
+              name,
             }
           ),
         });
@@ -98,7 +100,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string }
             Accept: 'application/json',
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({email, password, role}),
+          body: JSON.stringify({email, password, role, name}),
         });
 
         const result = await response.json();
@@ -179,6 +181,15 @@ try {
         onChangeText={setPassword}
       />
 
+      
+      <Text style={styles.label}>Name</Text>
+      <TextInput 
+        style={styles.input}
+        placeholder="Enter your Name"
+        value={name}
+        onChangeText={setName}
+      />
+
       <TouchableOpacity style={styles.button} onPress={handleDelete}>
         <Text style={styles.buttonText}>Delete Data </Text>
       </TouchableOpacity>
@@ -209,6 +220,7 @@ try {
                 <View key={index} style={styles.userCard}>
                   <Text style={styles.userText}>📧 {users.email}</Text>
                   <Text style={styles.userText}>🎭 {users.role}</Text>
+                  <Text style={styles.userText}>N {users.name}</Text>
                 </View>
               ))
             ) : (
