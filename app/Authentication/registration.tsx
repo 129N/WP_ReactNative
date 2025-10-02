@@ -44,7 +44,7 @@ const [fetchedUser, setFetchedUser] = useState<{ email?: string; role?: string, 
           'Would you like to go to the login page?',
           [
             { text: 'Cancel', style: 'cancel' },
-            { text: 'OK', onPress: () => router.replace('../') }, // adjust the route as needed
+            { text: 'OK', onPress: () => router.replace('../admin_page/registration') }, // adjust the route as needed
           ]
         );
         

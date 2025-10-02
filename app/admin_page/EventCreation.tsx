@@ -38,6 +38,7 @@ export default function  EventCreation () {
 
   const handleCreateEvent = async() => {
     const token = await AsyncStorage.getItem('authToken');
+    console.log("Token stored:", token);
 
     try{
       if(!token){
@@ -61,6 +62,14 @@ export default function  EventCreation () {
           event_date: eventDate.toISOString(), // formatted
         }),
       });
+
+      //debug 
+      console.log("Sending headers:", {
+  Authorization: `Bearer ${token}`,
+  Accept: "application/json",
+  "Content-Type": "application/json",
+});
+
 
       // put them into data var 
       const data = await response.json();

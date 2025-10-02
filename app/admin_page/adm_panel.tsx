@@ -46,6 +46,13 @@ export default function admin_panel(){
                     <Text style={styles.buttonText}>Participant LIst</Text>
                 </TouchableOpacity>
 
+                 <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#2bac31ff' }]} // green
+                    onPress={() => router.push('/../components/EventTableLists')}
+                >
+                    <Text style={styles.buttonText}>Event Lists</Text>
+                </TouchableOpacity>
+
 
 
               

@@ -10,8 +10,8 @@ import { Feather, MaterialIcons } from '@expo/vector-icons';
 //import Custom
 import CustomInput from '@/components/CustomInput';
 // Icon
+import { useAuth } from '@/app/Authentication/AuthProvider';
 import { Ionicons } from '@expo/vector-icons';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { BASE_URL } from '../admin_page/newfileloader';
@@ -19,158 +19,100 @@ import { BASE_URL } from '../admin_page/newfileloader';
 
 export default function ProfileScreen() {
 
-    //user property 
-    const [role, setRole] = useState<'admin' | 'competitor'>('competitor');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-
-    //Login property 
-    const [isLoggedin, setIsLoggedIn] = useState(false);
-    const [userEmail, setUserEmail] = useState ('');
-    const [userRole, setUserRole] = useState('');
-    const [userName, setUserName] = useState('');
-
+    const {user, logout, isLoggedIn, login, userRole, authToken} = useAuth();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
     const router = useRouter();
 
-    //AsynchStorage
     useEffect(() => {
-
-        const loadUserInfo = async () =>{
-            const token = await AsyncStorage.getItem('authToken');
-            const email = await AsyncStorage.getItem('userEmail');
-            const role = await AsyncStorage.getItem('userRole');
-            const name = await AsyncStorage.getItem('name');
-            setIsLoggedIn(!!token);
-            setUserEmail(email || '');
-            setUserRole(role || '');
-            setUserName(name || '' );
-        };
-        loadUserInfo();
-    }, []);
+  if (isLoggedIn && user) {
+        Alert.alert("Welcome back", user.name);
+    }
+    }, [isLoggedIn, user]);
 
 
-//handles Login System 
-    const handleLogin = async () => {
-        //setStep('code');
-      try{
-            if (!role) {
-              console.warn("Role is not defined");
-              alert("Please select a role");
-              return;
+     
+    if(isLoggedIn){
+        console.log("Welcome back", user?.name);
+        // Alert.alert("Welcome back", user?.name);
+    }
+
+    const handleLogin = async() => {
+        try{
+            const response = await fetch(`${BASE_URL}/login_react`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if(response.ok){
+                const token = data.token;
+                const roleFromApi = data.user.role;
+                const userData = {
+                id: data.user.id,
+                name: data.user.name,
+                email: data.user.email,
+                role: data.user.role,
+                };
+
+                await login(token, roleFromApi, userData);
+
+                Alert.alert("Success", `Logged in as ${roleFromApi}`);
+                if (roleFromApi === "admin") router.push("../admin_page/admin");
+            }else{
+                Alert.alert("Login failed", data.error || "Invalid credentials");
             }
-
-      console.log("Login payload:", email, password);
-
-
-            // goes to AuthController.php
-          const response = await fetch(`${BASE_URL}/login_react`,{
-             method: 'POST',
-             headers: {
-              'Content-Type': 'application/json',
-                Accept: 'application/json',
-            },
-            body: JSON.stringify({
-                email,  // email input value
-                password,  // password input value
-            }),
-
-          });
-
-          const data = await response.json();
-
-          if (response.ok) {
-
-            const token = data.token;
-            const roleFromApi = data.user.role;
-            const userName = data.user.name;
-            const email = data.user.email;
-   
-         
-             if (!token) {
-                console.warn("Token not returned by API");
-                alert("Login failed. Token not received.");
-                return;
-            }
-            
-            await AsyncStorage.setItem('userEmail', email);
-            await AsyncStorage.setItem('authToken', token);
-            await AsyncStorage.setItem('userRole', roleFromApi);
-            await AsyncStorage.setItem('name', userName);
-
-            alert('Logged in as ' + roleFromApi);
-            console.log("Login Success:", token);
-
-                if (roleFromApi === 'admin') { // role is also ok.
-                router.push('../admin_page/admin'); // Route to admin screen
-                } else {
-                    router.push('../'); // Route to participant screen
-                }
-
-          } else {
-            console.warn("Login Failed:", data.message || "Invalid credentials");
-             alert(data.message || "Login failed. Please check your credentials.");
-          }
 
         }
-          catch(error){
-            console.log("Error logging in:", error);
-              alert("An error occurred. Please try again later.");
-          }
-      };
-
-
-
-// handles Logout System
-    const handleLogout = async () => {
+        catch(err){
+            console.error(err);
+            Alert.alert("Error", "Something went wrong");
+        }
+    };
+    
+    const handleLogout = async() => {
         try{
 
-            const token = await AsyncStorage.getItem('authToken');
-          
-        await AsyncStorage.removeItem('userEmail');
-            if(!token){
-                Alert.alert('You are already logged out.');
-                return;
-            }
+            const token = authToken;
 
-            //call backend (Laravel)
-             const response = await fetch(`${BASE_URL}/logout`,{
-                         method: 'POST',
-                         headers: {
-                            Authorization : `Bearer ${token}`, // It is needed to authenticate btw the server and the client.
-                            Accept: 'application/json',
-                        },
+            const response = await fetch(`${BASE_URL}/logout` ,{
+                method: 'POST',
+                headers: {
+                    Authorization: `Bearer ${token}`,  
+                    Accept: 'application/json',
+                },
             });
 
             if(response.ok){
-                await AsyncStorage.removeItem('authToken');
-                await AsyncStorage.removeItem('userRole');
-                await AsyncStorage.removeItem('userEmail');
-                await AsyncStorage.removeItem('name');
-                setIsLoggedIn(false);
-                Alert.alert('Logged out !');
-                router.replace('../Setting');
-            } else{
-                console.log("Token : " + response); // the [Object object] had shown mismatch of token. 
-                Alert.alert('Logout failed. please try again');
+
+                await logout();
+                Alert.alert("Logged out successfully");
+                router.replace("../Setting"); // or wherever you want to go
+
+            }else {
+                const data = await response.json();
+                console.warn("Logout failed:", data);
+                Alert.alert("Logout failed", data.error || "Please try again");
             }
+           
+
         }
-        catch(error){
-            console.log(error);
-            Alert.alert("Error logging out");
+        catch(err){
+            console.error("Error logging out:", err);
+            Alert.alert("Error", "Something went wrong");
         }
-    };
+    }
+
 
     return (
       <ScrollView 
-            style={styles.container}
-            contentContainerStyle= { {paddingBottom:2 * spacing.md}}>
+            style={styles.container} contentContainerStyle= { {paddingBottom:2 * spacing.md}}>
 
          <Header/>
-
-            <View style = {styles.container} >
-                
                 <View style = {styles.ProfileImageContainer}>
-                    { isLoggedin ? 
+                    { isLoggedIn ? 
                         (
                         <Image style = {styles.ProfileImage} source={require("@/assets/images/Fugen.png")} />
                         ):
@@ -182,19 +124,17 @@ export default function ProfileScreen() {
                     <Feather name = {"edit-3"} size={iconSize_dimension.md} color={Colors.iconPrimary.iconwhite}/>
                 </TouchableOpacity>
 
-            </View>
-
             <View style = {styles.nameRolecontainer}>
 
-                <Text style = {styles.name}>  Role : {isLoggedin ? userEmail : "Email"} </Text>
-                <Text style = {styles.role}> Account : {isLoggedin ? userRole : "Not Logged In"} </Text>
-                    <Text style = {styles.name}> Name  : {isLoggedin ? userName : "Guest"} </Text>
+                <Text style = {styles.name}>  Role : {isLoggedIn && user ?  user.email : "Email"} </Text>
+                <Text style = {styles.role}> Account : {isLoggedIn ? userRole : "Not Logged In"} </Text>
+                <Text style = {styles.name}> Name  : {isLoggedIn && user ?  user.name : "Guest"} </Text>
                 
             </View>
 
             <View style = {styles.InputFieldContainer}>
 
-                {!isLoggedin ? (
+                {!isLoggedIn ? (
                     <>
                     {/* show only if not logged in */}
 
@@ -231,7 +171,7 @@ export default function ProfileScreen() {
                             />
 
                             <TouchableOpacity style={styles.button} onPress={handleLogin}>
-                                <Text style={styles.buttonText}>Next</Text>
+                                <Text style={styles.buttonText}>Login</Text>
                             </TouchableOpacity>
 
                     </>

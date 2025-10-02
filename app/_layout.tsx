@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 import { Slot } from 'expo-router';
 import { Dimensions, ScrollView, StyleSheet, View } from 'react-native';
 import 'react-native-reanimated';
+import { AuthProvider } from './Authentication/AuthProvider';
 
 export default function RootLayout() {
 
@@ -34,25 +35,19 @@ const styles = StyleSheet.create({
 });
 
   return (
+      <AuthProvider>
+        <ScrollView contentContainerStyle={{flexGrow: 1}}>
+          <View style={styles.outer}>
 
-    <ScrollView contentContainerStyle={{flexGrow: 1}}>
-      {/* This header appears on every screen in this layout */}
-      <View style={styles.outer}>
-
-          <View style= {styles.header}>
-                <Header/>
-          </View>
+            <View style= {styles.header}>
+                  <Header/>
+            </View>
               <Responsive/>
-      </View>
+          </View>
 
-      {/* Child routes go here */}
-      <Slot />
-    </ScrollView>
-   
-     
-
-
-
+            <Slot/>
+        </ScrollView>
+      </AuthProvider>
   );
   
 }
