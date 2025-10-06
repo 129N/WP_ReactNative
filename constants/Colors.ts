@@ -34,13 +34,18 @@ export const Colors = {
   }, 
 
   iconPrimary : {
-    iconwhite: '#ffffffff',
+    iconwhite: '#',
   },
 
   textPrimary : {
     gray: '#9BA1A6',
   },
-  
+
+  pallete : {
+    white : '#ffffffff',
+    black : '#000000ff'
+  }
+
 };
 
 

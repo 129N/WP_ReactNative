@@ -1,15 +1,31 @@
 import { BASE_URL } from '@/app/admin_page/newfileloader';
+import { Colors } from '@/constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+
+
+type Event = {
+  id: number;
+  EventTitle: string;
+  description: string;
+  event_date: string;
+  event_creatorName: string;
+};
 
 
 export default function EventTableLists(){
 
 const [events, setEvents] = useState<any[]>([]);
 
+//another const 
+  const { id } = useLocalSearchParams<{ id: string }>(); 
+ const [event, setEvent] = useState <Event | null>(null);
 
 const fetchEvents = async ()=>{
+  
 
   const token = await AsyncStorage.getItem('authToken');
   try{
@@ -59,42 +75,69 @@ const deleteEvent = async (id: number) => {
   };
 
 
-  useEffect(() => {
-  
-  }, []);
+  // useEffect(() => {
+  //  fetch(`${BASE_URL}/events/${id}`)
+  //     .then((res) => res.json())
+  //     .then(setEvent);
+  // }, [id]);
+
+
+//  if (!event) return <Text>Loading...</Text>;
 
   return(
     <ScrollView style={styles.container}>
       <Text>Fetched event list</Text>
-      {/* DELETE BUTTON */}
 
+      <TouchableOpacity style={styles.fetchbutton} onPress={fetchEvents}>
+          <Text style={styles.fetchbuttonText}>Reload</Text>
+        </TouchableOpacity>
 
-      {/* FETCH BUTTON */}
-
-      
-      {/* Registration BUTTON */}
-
-
+{/* Does the map fetch the eventList automatically? */}
          {events.length > 0 ? (
         events.map((event, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.eventCard}
-            onPress={() =>
-              Alert.alert(
-                'Delete Event',
-                `Are you sure you want to delete ${event.event_title}?`,
-                [
-                  { text: 'Cancel', style: 'cancel' },
-                  { text: 'OK', onPress: () => deleteEvent(event.id) },
-                ]
-              )
-            }
-          >
-            <Text style={styles.eventText}>📌 {event.event_title}</Text>
-            <Text style={styles.eventText}>📝 {event.description}</Text>
-            <Text style={styles.eventText}>👤 {event.event_creatorName}</Text>
-          </TouchableOpacity>
+          <View>
+            <View style={styles.eventInfo}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{event.EventTitle}</Text>
+                    <Text>{event.description}</Text>
+                    <Text>{new Date(event.event_date).toLocaleString()}</Text>
+                    <Text>Created by: {event.event_creatorName}</Text>
+            </View>
+
+
+{/* View details */}
+            <TouchableOpacity
+                style={[styles.button, styles.viewButton]}
+                onPress={() =>
+                  router.push({
+                    pathname: "/comp/Event_Registration",
+                    params: { id: event.id },
+                  })
+                }
+              >
+                <Text style={styles.buttonText}>View</Text>
+              </TouchableOpacity>
+
+
+{/* Delete button */}
+            <TouchableOpacity
+              key={index}
+              style={styles.eventCard}
+              onPress={() =>
+                Alert.alert(
+                  'Delete Event',
+                  `Are you sure you want to delete ${event.event_title}?`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    { text: 'OK', onPress: () => deleteEvent(event.id) },
+                  ]
+                )
+              }
+            >
+              <Text style = {styles.buttonText}> Delete</Text>
+            </TouchableOpacity>
+          </View>
+
+
         ))
       ) : (
         <Text>No events yet</Text>
@@ -113,12 +156,78 @@ const deleteEvent = async (id: number) => {
 
 
 const styles = StyleSheet.create({
-container: { padding: 20 },
-  eventCard: {
-    backgroundColor: '#2c2c2e',
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 8,
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor:  Colors.light.background,
   },
-  eventText: { color: '#fff' },
-})
+  header: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: Colors.pallete.black,
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  eventCard: {
+    backgroundColor: Colors.dark.background,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  eventInfo: {
+    marginBottom: 12,
+  },
+  eventTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: 'black',
+    marginBottom: 4,
+  },
+  eventText: {
+    fontSize: 15,
+    color: Colors.textPrimary.gray,
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  viewButton: {
+    backgroundColor: Colors.orange.background, // e.g., blue
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: "600",
+    fontSize: 15,
+  },
+  emptyText: {
+    textAlign: "center",
+    color: Colors.textPrimary.gray,
+    fontSize: 16,
+    marginTop: 40,
+  },
+     fetchbutton: {
+        backgroundColor: '#007AFF',
+        padding: 15,
+        borderRadius: 8,
+        alignItems: 'center',
+        marginTop: 10,
+      },
+      fetchbuttonText  :{
+           color: 'white',
+        fontSize: 16,
+        fontWeight: '600',
+      }
+});

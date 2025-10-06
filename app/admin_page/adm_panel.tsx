@@ -48,7 +48,7 @@ export default function admin_panel(){
 
                  <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#2bac31ff' }]} // green
-                    onPress={() => router.push('/../components/EventTableLists')}
+                    onPress={() => router.push('/comp/EventLists')}
                 >
                     <Text style={styles.buttonText}>Event Lists</Text>
                 </TouchableOpacity>

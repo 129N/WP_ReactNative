@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createContext, ReactNode, useContext, useEffect, useState } from 'react';
+import { BASE_URL } from '../admin_page/newfileloader';
 
 // It was created to prevent break session by reloading,  
 
@@ -56,6 +57,31 @@ useEffect( () => {
             setLoading(false);
         }
     };
+
+
+    const checkToken = async() => {
+    const token = await AsyncStorage.getItem("authToken");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${BASE_URL}/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (res.status === 401) {
+        // Token invalid or expired → auto logout
+        await logout();
+      }
+    } catch (err) {
+      console.warn("Auth check failed:", err);
+    }
+    };
+
+
+        checkToken();
     loadstorage();
 }, []);
 
