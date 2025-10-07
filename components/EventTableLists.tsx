@@ -7,12 +7,22 @@ import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'rea
 
 
 
+
+// {
+//   "id": 1,
+//   "event_code": "EV01",
+//   "event_title": "Dummy event",
+//   "description": "adm description",
+//   "event_date": "2025-10-07T19:17:09.545Z",
+//   "creator_name": "Administrator"
+// }
+
 type Event = {
   id: number;
-  EventTitle: string;
+  event_title: string;
   description: string;
   event_date: string;
-  event_creatorName: string;
+  creator_name: string;
 };
 
 
@@ -96,11 +106,13 @@ const deleteEvent = async (id: number) => {
          {events.length > 0 ? (
         events.map((event, index) => (
           <View>
+
             <View style={styles.eventInfo}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{event.EventTitle}</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'black' }}>{event.event_title}</Text>
                     <Text>{event.description}</Text>
                     <Text>{new Date(event.event_date).toLocaleString()}</Text>
-                    <Text>Created by: {event.event_creatorName}</Text>
+                    <Text>Created by: {event.creator_name}</Text>
+                    <Text>Event Code {event.event_code}</Text>
             </View>
 
 
