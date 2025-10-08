@@ -87,14 +87,27 @@ useEffect( () => {
 
 // even if the app reloaded, the token is still valid.
     const login = async (token: string, role:string, userData: NonNullable<User>) => {
+
+
+        try{
+        
         await AsyncStorage.setItem("authToken", token);
         await AsyncStorage.setItem("userRole", role);
         await AsyncStorage.setItem("user", JSON.stringify(userData));
+
+ // Also save individual items for convenience if needed later
+    await AsyncStorage.setItem("userId", userData.id.toString());
+    await AsyncStorage.setItem("userName", userData.name);
+    await AsyncStorage.setItem("userEmail", userData.email);
 
 
         setAuthToken(token);
         setUserRole(role);
         setUser(userData);
+        } catch(err){
+            console.error("Error saving login data:", err);
+        }
+
     };
 
     const logout = async () => {

@@ -46,24 +46,26 @@ const [leaderEmail, setLeaderEmail] = useState('');
 //loadl user info const 
 const [role, setRole] = useState('');
 const [eventTitle, setEventTitle] = useState('');
-
+const [userId, setuserId] = useState('');
 
 useEffect(()=> {
-    //load from the other tables
+    //load from the other tables and controller
     const loadUserInfo = async () => {
         //user info from 
-        const name = await AsyncStorage.getItem('name');
-        const email = await AsyncStorage.getItem('email');
-        const role = await AsyncStorage.getItem('role');
+        const name = await AsyncStorage.getItem('userName');
+        const email = await AsyncStorage.getItem('userEmail');
+        const role = await AsyncStorage.getItem('userRole');
+        const userId = await AsyncStorage.getItem('userId');
 
         //Event title from EventCreation.tsx, 
         const eventTitle = await AsyncStorage.getItem('event_title');
-
 
         if (name) setLeaderName(name);
         if(email) setLeaderEmail(email);
         if(role) setRole(role);
         if(eventTitle) setEventTitle(eventTitle);
+        if(userId) setuserId(userId);
+    if (eventId) seteventId(eventId);
     };
     loadUserInfo();
 }, []);
@@ -80,15 +82,17 @@ const removemember = (index: number) => {
 
 const handleRegsiteration = async () => {
 
-
     try{
         const token = await AsyncStorage.getItem('authToken');
         if (!token) return Alert.alert('Please log in first');
 
+            if (!eventId) return Alert.alert('Please select or enter an event first');
+
         if(mode === 'single'){
             //POST/event_registrations
 
-           const res =  await fetch(`${BASE_URL}/event_registrations`, {
+            //Controller name is EventRegistration,php 
+           const res =  await fetch(`${BASE_URL}/events/${eventId}/register`, {
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
@@ -96,8 +100,8 @@ const handleRegsiteration = async () => {
                     Authorization: `Bearer ${token}`,
                 }, 
                 body: JSON.stringify({
-                    event_id: eventId,
-                    user_id: leaderEmail,
+                    //event_id: eventId,
+                    user_id: parseInt(userId, 10),
                     group_name: 'solo',
                 }),
             });
@@ -106,7 +110,7 @@ const handleRegsiteration = async () => {
             const data = await res.json();
             if(res.ok){
 
-             alert(`${leaderName} has been registered in ${eventTitle}` );
+             alert(`${leaderName} has been registered` );
             }else{
                 console.error("REG Failed:", data);
                 alert("Registration failed.");
@@ -116,9 +120,8 @@ const handleRegsiteration = async () => {
         // if the registration is multiple
         else{
 
-
             const team_Res = await fetch
-            (``, {
+            (`${BASE_URL}/teams`, {
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',
@@ -140,7 +143,7 @@ const handleRegsiteration = async () => {
             const data = await team_Res.json();
             if(team_Res.ok){
 
-             alert(`${leaderName} has been registered in ${eventTitle}` );
+             alert(`${leaderName} has been registered ` );
             }else{
                 console.error("REG Failed:", data);
                 alert("Registration failed.");
@@ -164,7 +167,8 @@ const handleRegsiteration = async () => {
 
 
             {/* Toggle  */}
-            <View style = {styles.toggleContainer}>
+<View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
+ 
                 <TouchableOpacity  onPress={() => setMode('single')}>
                     <Text style={[styles.toggleText, mode === 'single' && styles.activeToggle]}> Single</Text>
                 </TouchableOpacity>
@@ -176,7 +180,8 @@ const handleRegsiteration = async () => {
 
             {/* loaded from the the table */}
 
-            {/*DO I need to edit ?  */}
+            <Text>Register to {eventId} </Text>
+
             <CustomInput label="Event ID" placeholder="Enter event ID" value={eventId} onChangeText={seteventId} />
             <CustomInput label='Leader Name' placeholder='' value={leaderName} editable={false}/>
             <CustomInput label="Leader Email" placeholder="" value={leaderEmail} editable={false} />

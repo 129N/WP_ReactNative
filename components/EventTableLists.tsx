@@ -2,10 +2,10 @@ import { BASE_URL } from '@/app/admin_page/newfileloader';
 import { Colors } from '@/constants/Colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-
+//import { useAuth } from '@/app/Authentication/AuthProvider';
 
 
 // {
@@ -29,10 +29,21 @@ type Event = {
 export default function EventTableLists(){
 
 const [events, setEvents] = useState<any[]>([]);
+const [userRole, setUserRole] = useState<string|null>(null);
+
 
 //another const 
   const { id } = useLocalSearchParams<{ id: string }>(); 
  const [event, setEvent] = useState <Event | null>(null);
+//const { userRole } = useAuth();
+
+useEffect(() => {
+  const fetchRole = async () => {
+    const role = await AsyncStorage.getItem("userRole");
+    setUserRole(role);
+  };
+  fetchRole();
+}, []);
 
 const fetchEvents = async ()=>{
   
@@ -130,23 +141,29 @@ const deleteEvent = async (id: number) => {
               </TouchableOpacity>
 
 
-{/* Delete button */}
+{/* Delete button ONLY FOR ADMIN */}
+
+            { userRole === 'admin' && (
             <TouchableOpacity
-              key={index}
-              style={styles.eventCard}
-              onPress={() =>
-                Alert.alert(
-                  'Delete Event',
-                  `Are you sure you want to delete ${event.event_title}?`,
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'OK', onPress: () => deleteEvent(event.id) },
-                  ]
-                )
-              }
-            >
-              <Text style = {styles.buttonText}> Delete</Text>
+                    key={index}
+                    style={styles.eventCard}
+                    onPress={() =>
+                      Alert.alert(
+                        'Delete Event',
+                        `Are you sure you want to delete ${event.event_title}?`,
+                        [
+                          { text: 'Cancel', style: 'cancel' },
+                          { text: 'OK', onPress: () => deleteEvent(event.id) },
+                        ]
+                      )
+                    }
+                  >
+                    <Text style = {styles.buttonText}> Delete</Text>
             </TouchableOpacity>
+
+            )}
+
+        
           </View>
 
 
