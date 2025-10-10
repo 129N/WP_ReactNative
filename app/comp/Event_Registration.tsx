@@ -32,6 +32,15 @@ import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { BASE_URL } from '../admin_page/newfileloader';
 
+type Event = {
+  id: number;
+  event_title: string;
+  description: string;
+  event_date: string;
+  creator_name: string;
+  event_code: string;
+};
+
 export default function event_registrations()  {
 
 // toggle 
@@ -47,6 +56,12 @@ const [leaderEmail, setLeaderEmail] = useState('');
 const [role, setRole] = useState('');
 const [eventTitle, setEventTitle] = useState('');
 const [userId, setuserId] = useState('');
+
+
+//load from EventCreation.tsx
+
+const [loadCreation, setLoadCreation] = useState<Event[]>([]);
+
 
 useEffect(()=> {
     //load from the other tables and controller
@@ -167,20 +182,35 @@ const handleRegsiteration = async () => {
 
 
             {/* Toggle  */}
-<View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'center', marginVertical: 10 }}>
  
                 <TouchableOpacity  onPress={() => setMode('single')}>
                     <Text style={[styles.toggleText, mode === 'single' && styles.activeToggle]}> Single</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity  onPress={() => setMode('team')}>
-                    <Text style={[styles.toggleText, mode === 'single' && styles.activeToggle]}> Team</Text>
+                    <Text style={[styles.toggleText, mode === 'team' && styles.activeToggle]}> Team</Text>
                 </TouchableOpacity>
             </View>
 
             {/* loaded from the the table */}
 
-            <Text>Register to {eventId} </Text>
+
+            {loadCreation.map((ld, index) => {
+                return(               
+                    
+                <View>
+                    <Text>Title: {ld.event_title} </Text>
+                    <Text>Register to {ld.event_code} </Text>
+                </View>
+
+            );
+
+            })}
+
+    
+
+            <Text> Enter 1 in Event ID</Text>
 
             <CustomInput label="Event ID" placeholder="Enter event ID" value={eventId} onChangeText={seteventId} />
             <CustomInput label='Leader Name' placeholder='' value={leaderName} editable={false}/>

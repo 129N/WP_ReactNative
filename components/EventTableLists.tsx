@@ -23,12 +23,15 @@ type Event = {
   description: string;
   event_date: string;
   creator_name: string;
+  event_code: string;
 };
 
 
 export default function EventTableLists(){
 
-const [events, setEvents] = useState<any[]>([]);
+//const [events, setEvents] = useState<any[]>([]);
+
+const [events, setEvents] = useState<Event[]>([]);
 const [userRole, setUserRole] = useState<string|null>(null);
 
 
@@ -95,16 +98,6 @@ const deleteEvent = async (id: number) => {
     }
   };
 
-
-  // useEffect(() => {
-  //  fetch(`${BASE_URL}/events/${id}`)
-  //     .then((res) => res.json())
-  //     .then(setEvent);
-  // }, [id]);
-
-
-//  if (!event) return <Text>Loading...</Text>;
-
   return(
     <ScrollView style={styles.container}>
       <Text>Fetched event list</Text>
@@ -119,7 +112,8 @@ const deleteEvent = async (id: number) => {
           <View>
 
             <View style={styles.eventInfo}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'black' }}>{event.event_title}</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', color: 'black' }}>
+                {event.event_title}</Text>
                     <Text>{event.description}</Text>
                     <Text>{new Date(event.event_date).toLocaleString()}</Text>
                     <Text>Created by: {event.creator_name}</Text>
