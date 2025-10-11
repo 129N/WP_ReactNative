@@ -34,7 +34,7 @@ export default function admin_panel(){
 
                 <TouchableOpacity
                     style={[styles.button, { backgroundColor: '#10B981' }]} // green
-                    onPress={() => router.push('../admin_page/Manage_Event')}
+                    onPress={() => router.push('/admin_page/adminDashBoard')}
                 >
                     <Text style={styles.buttonText}>Manage Events(event table creatin)</Text>
                 </TouchableOpacity>

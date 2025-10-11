@@ -29,6 +29,13 @@ export default function Participant(){
 
                 
 
+                 <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#2bac31ff' }]} // green
+                    onPress={() => router.push('/comp/EventLists')}
+                >
+                    <Text style={styles.buttonText}>Event Lists</Text>
+                </TouchableOpacity>
+                
 
               {/* {This Gyroscope is used in competion } */}
               {/* {Later this will be removed } */}

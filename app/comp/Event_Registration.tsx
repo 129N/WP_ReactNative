@@ -196,7 +196,7 @@ const handleRegsiteration = async () => {
             {/* loaded from the the table */}
 
 
-            {loadCreation.map((ld, index) => {
+            {loadCreation.map((ld) => {
                 return(               
                     
                 <View>

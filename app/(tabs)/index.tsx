@@ -1,8 +1,11 @@
 import { ThemedText } from '@/components/ThemedText';
 import HomeBTN from '@/components/ui/Home_BTN';
-import { StyleSheet, View } from 'react-native';
-
+import { useRouter } from 'expo-router';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 export default function HomeScreen() {
+
+  const router = useRouter();
+  
  return (
 
 
@@ -15,6 +18,12 @@ export default function HomeScreen() {
       <HomeBTN title="Audience" color="#8B5CF6" to="/audience_folder/audience" />
      <HomeBTN title="WP_Button" color="#8B5CF6" to="/comp/WPScreen" />
         
+
+      <TouchableOpacity
+      style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
+      onPress={() => router.push('../Authentication/registration')}>
+      <Text style={styles.buttonText}> Regsitration</Text>
+      </TouchableOpacity>
     </View>
 
   //   <ParallaxScrollView
@@ -98,5 +107,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-  },
+  }, 
+  
+  button: {
+      paddingVertical: 12,
+      paddingHorizontal: 24,
+      borderRadius: 8,
+      marginBottom: 8,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: '#fff',
+      fontWeight: 'bold',
+      fontSize: 16,
+    },
 });
