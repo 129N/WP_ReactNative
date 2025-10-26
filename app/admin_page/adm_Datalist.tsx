@@ -17,7 +17,6 @@ export default function adm_Datalist() {
     const [users, setUsers] = useState<{email:string; role:string}[]>([]);
 
     const fetchList = async() => {
-        
 
         const token = await AsyncStorage.getItem('authToken');
 

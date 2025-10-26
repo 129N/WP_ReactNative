@@ -5,6 +5,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { getDistance } from 'geolib'; // To calculate distance between two points
 import React, { useEffect, useState } from 'react';
 import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BASE_URL } from '../admin_page/newfileloader';
 import getBearing from '../comp/GPXfunction';
 
 
@@ -98,11 +99,16 @@ type TrackPoint = {
 
       console.log('Preparing fetching...');
 
-          const response = await fetch('http://192.168.0.101:8001/api/waypoints');
+          const response = await fetch(`${BASE_URL}/waypoints`);
     
+          if(response.ok){
           const result = await response.json();
           console.log('Upload success:', result);
           alert('Fetching is success!');
+          }else{
+        console.log('Upload failed:');
+          alert('Fetching is fail!');
+          }
 
     }
     

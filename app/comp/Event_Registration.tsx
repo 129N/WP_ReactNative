@@ -57,7 +57,6 @@ const [role, setRole] = useState('');
 const [eventTitle, setEventTitle] = useState('');
 const [userId, setuserId] = useState('');
 
-
 //load from EventCreation.tsx
 
 const [loadCreation, setLoadCreation] = useState<Event[]>([]);

@@ -61,7 +61,7 @@ useEffect( () => {
 //If the token is expired, it automatically carrys out log out.
     const checkToken = async() => {
     const token = await AsyncStorage.getItem("authToken");
-    if (!token) return;
+
 
     try {
       const res = await fetch(`${BASE_URL}/user`, {
