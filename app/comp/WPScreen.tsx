@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { getDistance } from 'geolib'; // To calculate distance between two points
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { BASE_URL } from '../admin_page/newfileloader';
 import getBearing from '../comp/GPXfunction';
 
 
@@ -42,7 +43,7 @@ type TrackPoint = {
 
       console.log('Preparing fetching...');
 
-          const response = await fetch('http://192.168.0.101:8001/api/waypoints');
+          const response = await fetch(`${BASE_URL}/waypoints`);
           const result = await response.json();
           console.log('Fetched result:', result);
 
@@ -69,7 +70,7 @@ type TrackPoint = {
 
   const surrender_notification = async() => {
      try {
- await fetch('http://192.168.0.101:8001/api/notify', {
+ await fetch(`${BASE_URL}/api/notify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -89,7 +90,7 @@ type TrackPoint = {
 
    const help_notification = async() => {
   try {
-    await fetch('http://192.168.0.101:8001/api/notify', {
+    await fetch(`${BASE_URL}/api/notify`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

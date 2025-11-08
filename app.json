@@ -9,6 +9,10 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app uses your location to track your progress during the event.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "This app tracks your location even when the app is closed, to keep your progress updated."
+      },
       "supportsTablet": true
     },
     "android": {
@@ -16,7 +20,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.anonymous.waypointmobile"
     },
     "web": {
       "bundler": "metro",

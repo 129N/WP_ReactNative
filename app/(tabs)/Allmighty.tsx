@@ -1,14 +1,40 @@
 
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import * as DocumentPicker from 'expo-document-picker';
-import { XMLParser } from 'fast-xml-parser';
 import { getDistance } from 'geolib'; // To calculate distance between two points
 import React, { useEffect, useState } from 'react';
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { BASE_URL } from '../admin_page/newfileloader';
 import getBearing from '../comp/GPXfunction';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
+//TrackPoint
+import type { LocationObject } from 'expo-location';
+import * as Location from "expo-location";
+import type { TaskManagerError } from 'expo-task-manager';
+import * as TaskManager from 'expo-task-manager';
+import Svg, { Circle, Line } from 'react-native-svg';
+
+
+
+// Location Task
+  const LOCATION_TASK = 'LOCATION_TRACKING_TASK';
+
+  TaskManager.defineTask(LOCATION_TASK, async ({data, error} : {
+    data? : { locations: LocationObject[] };
+    error? : TaskManagerError | null;
+  })=>{
+    if(error){
+    console.error("Task error:", error);
+    return;
+    }
+
+    if(data && data.locations && data.locations.length > 0){
+      const location = data.locations[0];
+      console.log("📍 Background location:", location.coords);
+      await AsyncStorage.setItem('lastlocation', JSON.stringify(location.coords));
+    }
+  });
 
 const execution = () => {
     const [coordinates, setCoordinates] = useState<{ latitude: number, longitude: number } | null>(null);
@@ -21,14 +47,20 @@ const execution = () => {
     const [eta, setEta] = useState(0);
     const [speed, setSpeed] = useState(10); // Example speed in km/h
 
+    // const [interval, setInterval] = useState<number[] | null>([]);
+    //toggle mode 
+    const [viewmode, setViewMode] = useState<'waypoints'| 'trackpoints'>('waypoints');
+
 type Waypoint = {
   name: string;
   latitude: number;
   longitude: number;
 }
 type TrackPoint = {
-  '@_lat': string;
-  '@_lon': string;
+  // '@_lat': string;
+  // '@_lon': string;
+  latitude : number;
+  longitude : number;
 };
 
   type Position = {
@@ -36,74 +68,67 @@ type TrackPoint = {
     longitude: number;
   };
 
-  const fileload_map= async ()=> {
-    try{
-        const result = await DocumentPicker.getDocumentAsync({ type: 'application/gpx+xml' });
+
+  //Trackpoints function
+  useEffect(()=>{
+    const startTracking = async() => {
+      const {status:fg} = await Location.requestForegroundPermissionsAsync();
+      const {status:bg} = await Location.requestBackgroundPermissionsAsync();
+
+      if (fg !== 'granted' || bg !== 'granted') {
+        alert('Permission denied');
+        return;
+      }
+
+      const isTaskRunning = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK);
+      if(!isTaskRunning){
+        await Location.startLocationUpdatesAsync(LOCATION_TASK, {
+          accuracy: Location.Accuracy.High,
+          timeInterval: 5000, 
+          distanceInterval: 5, 
+          foregroundService:{
+            notificationTitle: 'Waypoint Tracker Active',
+            notificationBody: 'Tracking your progress even when app is closed',
+          },
+        });
+      }
+    };
 
 
-        if(
-        result.assets && result.assets.length > 0 && 
-        result.assets[0].name.endsWith('.gpx')
-        ){
-            const fileUri = result.assets[0].uri;
-             setFileUri(fileUri); // Save it to state
+    startTracking();
+  }, []);
+  
 
-             console.log('File URI:', fileUri);
-
-            const gpxText = await fetch(fileUri).then(res => res.text());
-
-            const parser = new XMLParser({
-                    ignoreAttributes: false,
-                    ignoreDeclaration: true,
-                    ignorePiTags: true,
-                  });
-
-
-            const parsedData = parser.parse(gpxText);
-
-      // Extract waypoints and use the first one as the center point
-      const waypoints = parsedData?.gpx?.wpt || [];
-      const trackPoints = parsedData?.gpx?.trk?.trkseg?.trkpt || [];
-        
-      const parsedWaypoints: Waypoint[] = (waypoints || []).map((wpt: any) => ({
-        name: wpt.name?.['#text'] || 'Unnamed',
-        latitude: parseFloat(wpt['@_lat']),
-        longitude: parseFloat(wpt['@_lon']),
-      }));
-
-      setWaypoints(parsedWaypoints);
-      setTrackPoints(trackPoints);
-      
-
-        if (parsedWaypoints.length > 0) {
-          const firstWaypoint = parsedWaypoints[0];
-      
-          setCoordinates({ latitude: firstWaypoint.latitude, longitude: firstWaypoint.longitude });
-          alert('FE: The waypoint uploaded successfully!');
-        } else {
-          alert('No waypoints found in the GPX file.');
-        }
-    }
-
-    }catch(map_err){
-         console.error('Error picking file:', map_err);
-      alert('Error picking the file. Please try again.');
-    }
-  };
-//upload function finish 
-
-//fetch the waypoint 
-
-  const BEPass = async () => {
+const BEPass = async () => {
     try{
 
       console.log('Preparing fetching...');
-
-          const response = await fetch(`${BASE_URL}/waypoints`);
+          //preapring fetching here (also trackpoints are included)
+          const response = await fetch(`${BASE_URL}/filefetch`);
     
           if(response.ok){
           const result = await response.json();
-          console.log('Upload success:', result);
+          console.log('Upload success:');
+
+          //convert data shape
+          const wpArray = result.waypoints?.map((wp: any)=>({
+            name: wp.name || "Unnamed",
+            latitude: parseFloat(wp.lat),
+            longitude: parseFloat(wp.lon),
+          })) || [];
+
+          const TrkArray = result.trackpoints?.map((tp:any) => ({
+            latitude: parseFloat(tp.lat),
+            longitude: parseFloat(tp.lon),
+          })) || [];
+
+
+          setWaypoints(wpArray);
+          setTrackPoints(TrkArray);
+
+          // console.log("Waypoints parsed:", wpArray);
+          console.log("Waypoints parsed:", true);
+          console.log("Trackpoints parsed:", true);
           alert('Fetching is success!');
           }else{
         console.log('Upload failed:');
@@ -117,8 +142,6 @@ type TrackPoint = {
       alert('Server did not return valid JSON. Check Laravel logs.');
     }
   };
-
-
 
   const calculateBearingToNextWaypoint = () => {
       if(currentPosition && waypoints.length > 0){
@@ -137,9 +160,9 @@ type TrackPoint = {
       return 0;
     };
 
-
   useEffect( ()=>{
       const bearing = calculateBearingToNextWaypoint();
+      setBearing(bearing);
       console.log('Bearing:', bearing);
   }, [currentPosition, waypoints] );
 
@@ -157,10 +180,15 @@ type TrackPoint = {
     }, []);
   
 
+    //positon updating
 useEffect( () => { 
    
-    if (currentPosition && waypoints.length > 1) {
-
+    if (currentPosition && waypoints.length > 1 && trackPoints.length > 1) {
+    console.log('waypoints:',true );
+    console.log('trackpints', true);
+    if (waypoints.length < 2) {
+      console.warn('Not enough waypoints to calculate distance!');
+    }
     console.log('Current Position:', currentPosition);
     console.log('Next WP:', waypoints[1]);
 
@@ -186,50 +214,177 @@ useEffect( () => {
     }
   }, [currentPosition, waypoints, speed]);
 
+  //interval 
+  useEffect(()=> {
+    const interval = setInterval(async () =>{
+      const saved = await AsyncStorage.getItem('lastLocation');
+      if (saved) setCurrentPosition(JSON.parse(saved));
+    }, 5000 ); //every 5 seconds
 
-
-
+    return () => clearInterval(interval);
+  }, []);
 
 
     return (
-        <View style={styles.container}>
-            
-            <Text style={styles.title}>Direction to Next WP:</Text>
-                 <Button title="Load GPX File" onPress={fileload_map} />
-            
-                 <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
-                     <Text style={styles.buttonText} onPress={BEPass} >fetch the route</Text>
-                   </TouchableOpacity>
+      <View style={styles.container}>
 
-   {/* Display Distance, ETA, and Speed */}
-            <Text>Bearing: {bearing.toFixed(1)}°</Text>
-            <Text>Distance: {distanceToNext.toFixed(2)} km</Text>
-            <Text>ETA: {eta.toFixed(1)} minutes</Text>
+    <View style={styles.toggleContainer}>
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          viewmode === 'waypoints' && styles.activeButton,
+        ]}
+        onPress={() => setViewMode('waypoints')}
+      >
+        <Text
+          style={[
+            styles.toggleText,
+            viewmode === 'waypoints' && styles.activeText,
+          ]}
+        >
+          Waypoints
+        </Text>
+      </TouchableOpacity>
 
+      <TouchableOpacity
+        style={[
+          styles.toggleButton,
+          viewmode === 'trackpoints' && styles.activeButton,
+        ]}
+        onPress={() => setViewMode('trackpoints')}
+      >
+        <Text
+          style={[
+            styles.toggleText,
+            viewmode === 'trackpoints' && styles.activeText,
+          ]}
+        >
+          Track Points
+        </Text>
+      </TouchableOpacity>
+    </View>
+        {/* Display Distance, ETA, and Speed */}
+
+        <Text style={styles.title}>Direction to Next WP:</Text>
+        {/* <Button title="Load GPX File" onPress={fileload_map} /> */}
+  
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
+            <Text style={styles.buttonText} onPress={BEPass} >fetch the route</Text>
+        </TouchableOpacity>
+
+
+          <Text>Bearing: {bearing ? bearing.toFixed(1) : '---'}°</Text>
+          <Text>Distance: {distanceToNext ? distanceToNext.toFixed(2) : '---'} km</Text>
+          <Text>ETA: {eta ? eta.toFixed(1) : '---'} minutes</Text>
+
+        {/* Waypoints */}
+        { viewmode === 'waypoints' ? (
+        <>
+          <Text style={styles.title}>🟢 Waypoints Mode</Text>
           {bearing !== null && (
-        <View style={styles.arrowContainer}>
-          <Ionicons
-            name="arrow-up-outline"
-            size={40}
-            color="blue"
-            style={{ transform: [{ rotate: `${bearing}deg` }] }}
-          />
-          <Text>Bearing: {bearing.toFixed(1)}°</Text>
-          <Text style={{ textAlign: 'center' }}>Direction</Text>
-        </View>
-      )}
-              
+          <View style={styles.arrowContainer}>
+            <Ionicons
+              name="arrow-up-outline"
+              size={40}
+              color="blue"
+              style={{ transform: [{ rotate: `${bearing}deg` }] }}
+            />
+            <Text>Bearing: {bearing.toFixed(1)}°</Text>
+            <Text style={{ textAlign: 'center' }}>Direction</Text>
+          </View>
+          )}
+        </>
+            ) : (
+              // TrackPoints
+              <>                
+                <Text style={styles.title}>🔵 Track Point Mode</Text>
 
-          
+              {Array.isArray(trackPoints) && trackPoints.length>1 && (
+                <>
+
+                  <Svg height="300" width="100%">
+                      {trackPoints.map((tp, index) => {
+                        if (index === 0) return null;
+                        const prev = trackPoints[index - 1];
+
+                        const currLat = tp.latitude;
+                        const currLon = tp.longitude;
+                        const prevLat = prev.latitude;
+                        const prevLon = prev.longitude;
+
+
+                        if (isNaN(currLat) || isNaN(currLon) || isNaN(prevLat) || isNaN(prevLon)) {
+                          return null; // skip invalid data
+                        }
+
+                                // Normalize coordinates
+                          const baseLat = trackPoints[0].latitude;
+                          const baseLon = trackPoints[0].longitude;
+
+                          const x1 = (prevLon - baseLon) * 100000 + 50;  // scale & offset
+                          const y1 = 150 - (prevLat - baseLat) * 100000;
+                          const x2 = (currLon - baseLon) * 100000 + 50;
+                          const y2 = 150 - (currLat - baseLat) * 100000;
+
+                        return (
+                          <Line
+                            key={`line-${index}`}
+                            x1={index * 10}
+                            y1={150 + Math.sin(index / 5) * 20}
+                            x2={(index - 1) * 10}
+                            y2={150 + Math.sin((index - 1) / 5) * 20}
+                            stroke="#1E90FF"
+                            strokeWidth="3"
+                          />
+                        );
+                      })}
+
+                      {trackPoints.map((tp, index) => {
+                        const baseLat = tp.latitude;
+                        const baseLon = tp.longitude;
+                        if (isNaN(baseLat) || isNaN(baseLon)) return null;
+                        return (
+                          <Circle
+                            key={`tp-${index}`}
+                            cx={index * 10}
+                            cy={150 + Math.sin(index / 5) * 20}
+                            r="4"
+                            fill="#1E90FF"
+                          />
+                        );
+                      })}
+                    </Svg>
+                </>
+              )}
+
+       
+            
+              </>
+            )}
+              
+                {/* Current position marker */}
+{currentPosition && trackPoints.length > 0 && (
+  <Circle
+    cx={
+      (currentPosition.longitude - trackPoints[0].longitude) * 100000 + 50
+    }
+    cy={
+      150 - (currentPosition.latitude - trackPoints[0].latitude) * 100000
+    }
+    r="5"
+    fill="red"
+  />
+)}
+
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
-                     <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
-                     <Text style={styles.buttonText}>HELP</Text>
-                   </TouchableOpacity>
-                   <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}>
-                     <MaterialCommunityIcons name="exit-run" size={20} color="white" />
-                     <Text style={styles.buttonText}>Surrender</Text>
-                   </TouchableOpacity>
-        </View>
+                    <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
+                    <Text style={styles.buttonText}>HELP</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}>
+                    <MaterialCommunityIcons name="exit-run" size={20} color="white" />
+                    <Text style={styles.buttonText}>Surrender</Text>
+                  </TouchableOpacity>
+      </View>
 
     );
 };
@@ -268,7 +423,30 @@ const styles = StyleSheet.create({
   },
     button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
     buttonText: { color: 'white', marginLeft: 8, fontWeight: 'bold' },
-
+toggleText :{    
+  color: '#fff',
+  fontWeight: 'bold',
+},
+toggleButton :{
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#aaa',
+    borderRadius: 8,
+    marginHorizontal: 5,
+},
+activeButton : {
+  backgroundColor: '#2563eb',
+  borderColor: '#2563eb',
+}, 
+activeText : {
+    color: '#fff',
+},
+toggleContainer : {
+    flexDirection: 'row',
+  justifyContent: 'center',
+  marginVertical: 10,
+}, 
 
 });
 

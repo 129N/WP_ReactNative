@@ -26,7 +26,7 @@ type TrackPoint = {
 //export const BASE_URL = 'http://192.168.0.103:8001/api';
 //export const BASE_URL = 'http://192.168.0.103/api';
 //export const BASE_URL = 'https://abc123.ngrok.io/api';
-export const BASE_URL = 'https://397b558e9d06.ngrok-free.app/api';
+export const BASE_URL = 'https://c8854da789c2.ngrok-free.app/api';
 
 const GPXLoader = () => {
 
@@ -168,6 +168,8 @@ const GPXLoader = () => {
     
           const result = await response.json();
           console.log('Upload success:', result);
+          console.log('result keys:', Object.keys(result));
+          console.log('trackpoints sample:', result.trackpoints?.slice?.(0, 3));
           alert('File uploaded to backend successfully!');
         
     }
