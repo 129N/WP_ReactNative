@@ -1,12 +1,11 @@
 
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDistance } from 'geolib'; // To calculate distance between two points
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { BASE_URL } from '../admin_page/newfileloader';
 import getBearing from '../comp/GPXfunction';
-
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 //TrackPoint
 import type { LocationObject } from 'expo-location';
@@ -46,10 +45,56 @@ const execution = () => {
     const [bearing, setBearing] = useState(0);
     const [eta, setEta] = useState(0);
     const [speed, setSpeed] = useState(10); // Example speed in km/h
+const [visibleTrackPoints, setVisibleTrackPoints] = useState<TrackPoint[]>([]);
 
     // const [interval, setInterval] = useState<number[] | null>([]);
     //toggle mode 
     const [viewmode, setViewMode] = useState<'waypoints'| 'trackpoints'>('waypoints');
+
+
+    // 1. Find nearest trackpoint to the user ---
+    let nearestIndex = 0;
+
+    if(currentPosition && trackPoints.length > 0){
+      let nearestDistance = Infinity;
+
+      trackPoints.forEach((tp, i) => {
+          const dist = getDistance(
+            currentPosition,
+            { latitude: tp.latitude, longitude: tp.longitude }
+          );
+          if (dist < nearestDistance) {
+            nearestDistance = dist;
+            nearestIndex = i;
+          }
+      });
+
+    }
+
+    // --- 2. Pick next 5 trackpoints ONLY ---
+    // const visible = trackPoints.slice(nearestIndex, nearestIndex + 5);
+
+    //Normalize GPS coordinates 
+    const lats = visibleTrackPoints.map(tp => tp.latitude);
+    const lons = visibleTrackPoints.map(tp => tp.longitude);
+
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons);
+    const maxLon = Math.max(...lons);
+
+
+
+const R = 6378137; // Earth radius in meters
+
+function lonToX(lon: number) {
+  return R * (lon * Math.PI / 180);
+}
+
+function latToY(lat: number) {
+  return R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360));
+}
+
 
 type Waypoint = {
   name: string;
@@ -97,6 +142,32 @@ type TrackPoint = {
 
     startTracking();
   }, []);
+
+
+ useEffect(() => {
+  if (!currentPosition || trackPoints.length < 2) return;
+
+  // Find nearest trackpoint
+  let nearestIndex = 0;
+  let nearestDistance = Infinity;
+
+  for (let i = 0; i < trackPoints.length; i++) {
+    const dist = getDistance(
+      currentPosition,
+      { latitude: trackPoints[i].latitude, longitude: trackPoints[i].longitude }
+    );
+    if (dist < nearestDistance) {
+      nearestDistance = dist;
+      nearestIndex = i;
+    }
+  }
+
+  // Take NEXT 5 points
+  const upcoming = trackPoints.slice(nearestIndex, nearestIndex + 5);
+
+  setVisibleTrackPoints(upcoming);
+}, [currentPosition, trackPoints]);
+
   
 
 const BEPass = async () => {
@@ -121,6 +192,7 @@ const BEPass = async () => {
             latitude: parseFloat(tp.lat),
             longitude: parseFloat(tp.lon),
           })) || [];
+
 
 
           setWaypoints(wpArray);
@@ -268,7 +340,7 @@ useEffect( () => {
         <Text style={styles.title}>Direction to Next WP:</Text>
         {/* <Button title="Load GPX File" onPress={fileload_map} /> */}
   
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]} >
             <Text style={styles.buttonText} onPress={BEPass} >fetch the route</Text>
         </TouchableOpacity>
 
@@ -299,71 +371,111 @@ useEffect( () => {
               <>                
                 <Text style={styles.title}>🔵 Track Point Mode</Text>
 
-              {Array.isArray(trackPoints) && trackPoints.length>1 && (
-                <>
+{Array.isArray(trackPoints) && trackPoints.length > 1 && (
+  (() => {
 
-                  <Svg height="300" width="100%">
-                      {trackPoints.map((tp, index) => {
-                        if (index === 0) return null;
-                        const prev = trackPoints[index - 1];
+    const svgWidth = 360;
+    const svgHeight = 400;
 
-                        const currLat = tp.latitude;
-                        const currLon = tp.longitude;
-                        const prevLat = prev.latitude;
-                        const prevLon = prev.longitude;
+    const lats = visibleTrackPoints.map(tp => tp.latitude);
+    const lons = visibleTrackPoints.map(tp => tp.longitude);
 
+    const minLat = Math.min(...lats);
+    const maxLat = Math.max(...lats);
+    const minLon = Math.min(...lons);
+    const maxLon = Math.max(...lons);
+// ADD PADDING (VERY IMPORTANT)
+const padding = 30;
 
-                        if (isNaN(currLat) || isNaN(currLon) || isNaN(prevLat) || isNaN(prevLon)) {
-                          return null; // skip invalid data
-                        }
+//ranges 
+    const lonRange = maxLon - minLon || 1e-6;
+    const latRange = maxLat - minLat || 1e-6;
+    
+// MAINTAIN ASPECT RATIO (CRITICAL FIX)
+const scale = Math.min(
+  (svgWidth - padding * 2) / lonRange,
+  (svgHeight - padding * 2) / latRange
+);
 
-                                // Normalize coordinates
-                          const baseLat = trackPoints[0].latitude;
-                          const baseLon = trackPoints[0].longitude;
+// CENTERING OFFSET
+const xOffset = (svgWidth - lonRange * scale) / 2;
+const yOffset = (svgHeight - latRange * scale) / 2;
 
-                          const x1 = (prevLon - baseLon) * 100000 + 50;  // scale & offset
-                          const y1 = 150 - (prevLat - baseLat) * 100000;
-                          const x2 = (currLon - baseLon) * 100000 + 50;
-                          const y2 = 150 - (currLat - baseLat) * 100000;
+    const project = (lat:number, lon:number) => {
+      // const x = ((lon - minLon) / lonRange) * svgWidth;
+      // const y = svgHeight - ((lat - minLat) / latRange) * svgHeight;
+      const x = xOffset + (lon - minLon) * scale;
+      const y = svgHeight - (yOffset + (lat - minLat) * scale);
+      return { x, y };
+    };
 
-                        return (
-                          <Line
-                            key={`line-${index}`}
-                            x1={index * 10}
-                            y1={150 + Math.sin(index / 5) * 20}
-                            x2={(index - 1) * 10}
-                            y2={150 + Math.sin((index - 1) / 5) * 20}
-                            stroke="#1E90FF"
-                            strokeWidth="3"
-                          />
-                        );
-                      })}
+    return (
+      <Svg height={svgHeight} width={svgWidth}>
 
-                      {trackPoints.map((tp, index) => {
-                        const baseLat = tp.latitude;
-                        const baseLon = tp.longitude;
-                        if (isNaN(baseLat) || isNaN(baseLon)) return null;
-                        return (
-                          <Circle
-                            key={`tp-${index}`}
-                            cx={index * 10}
-                            cy={150 + Math.sin(index / 5) * 20}
-                            r="4"
-                            fill="#1E90FF"
-                          />
-                        );
-                      })}
-                    </Svg>
-                </>
-              )}
+        {/* LINES */}
+        {visibleTrackPoints.map((tp, index) => {
+          if (index === 0) return null;
+          const curr = project(tp.latitude, tp.longitude);
+          const prev = project(
+            visibleTrackPoints[index - 1].latitude,
+            visibleTrackPoints[index - 1].longitude
+          );
+          return (
+            <Line
+              key={`line-${index}`}
+              x1={prev.x}
+              y1={prev.y}
+              x2={curr.x}
+              y2={curr.y}
+              stroke="#1E90FF"
+              strokeWidth={3}
+            />
+          );
+        })}
 
-       
+        {/* BLUE DOTS */}
+        {visibleTrackPoints.map((tp, idx) => {
+          const p = project(tp.latitude, tp.longitude);
+          return (
+            <Circle
+              key={`tp-${idx}`}
+              cx={p.x}
+              cy={p.y}
+              r={4}
+              fill="#1E90FF"
+            />
+          );
+        })}
+
+        {/* RED USER DOT */}
+        {currentPosition && (() => {
+          const clampedLat = Math.min(Math.max(currentPosition.latitude,  minLat), maxLat);
+          const clampedLon = Math.min(Math.max(currentPosition.longitude, minLon), maxLon);
+          const p = project(clampedLat, clampedLon);
+          // const circleX = xOffset + (currentPosition.longitude - minLon) * scale;
+          // const circleY = svgHeight; 
+          
+          return (
+            <Circle
+              cx={svgWidth / 2}
+              cy={svgHeight - 10}
+              r={6}
+              fill="red"
+            />
+          );
+        })()}
+
+      </Svg>
+    );
+  })()    // <-- FIXED: CALL THE FUNCTION HERE
+)}
+
             
               </>
             )}
               
                 {/* Current position marker */}
-{currentPosition && trackPoints.length > 0 && (
+{/* {currentPosition && trackPoints.length > 0 && (
   <Circle
     cx={
       (currentPosition.longitude - trackPoints[0].longitude) * 100000 + 50
@@ -374,7 +486,7 @@ useEffect( () => {
     r="5"
     fill="red"
   />
-)}
+)} */}
 
                 <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
                     <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
