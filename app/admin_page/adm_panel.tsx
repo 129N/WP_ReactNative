@@ -36,7 +36,7 @@ export default function admin_panel(){
                     style={[styles.button, { backgroundColor: '#10B981' }]} // green
                     onPress={() => router.push('/admin_page/adminDashBoard')}
                 >
-                    <Text style={styles.buttonText}>Manage Events(event table creatin)</Text>
+                    <Text style={styles.buttonText}>Manage Events(event table creation)</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -51,6 +51,12 @@ export default function admin_panel(){
                     onPress={() => router.push('/comp/EventLists')}
                 >
                     <Text style={styles.buttonText}>Event Lists</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#bb00ffff' }]} // green
+                    onPress={() => router.push('/admin_page/Route_Recording')}>
+                    <Text style={styles.buttonText}>Recording</Text>
                 </TouchableOpacity>
 
 
