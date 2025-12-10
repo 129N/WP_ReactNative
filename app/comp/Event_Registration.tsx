@@ -45,7 +45,7 @@ export default function event_registrations()  {
 
 // toggle 
 const [mode, setMode] = useState<'single' | 'team'>('single');
-const [eventId, seteventId] = useState('');
+const [event_code, setEventCode] = useState('');
 const [teamName, setTeamName] = useState(''); 
 const [members, setMembers] = useState([{name:'', email:'', role:''}]);
 const [team_code, setteam_code] = useState('');
@@ -79,7 +79,7 @@ useEffect(()=> {
         if(role) setRole(role);
         if(eventTitle) setEventTitle(eventTitle);
         if(userId) setuserId(userId);
-    if (eventId) seteventId(eventId);
+    if (event_code) setEventCode(event_code);
     };
     loadUserInfo();
 }, []);
@@ -100,13 +100,13 @@ const handleRegsiteration = async () => {
         const token = await AsyncStorage.getItem('authToken');
         if (!token) return Alert.alert('Please log in first');
 
-            if (!eventId) return Alert.alert('Please select or enter an event first');
+            if (!event_code) return Alert.alert('Please select or enter an event first');
 
         if(mode === 'single'){
             //POST/event_registrations
 
             //Controller name is EventRegistration,php 
-           const res =  await fetch(`${BASE_URL}/events/${eventId}/register`, {
+           const res =  await fetch(`${BASE_URL}/events/${event_code}/register`, {
                 method: 'POST', 
                 headers: {
                     'Content-Type': 'application/json',
@@ -114,7 +114,7 @@ const handleRegsiteration = async () => {
                     Authorization: `Bearer ${token}`,
                 }, 
                 body: JSON.stringify({
-                    //event_id: eventId,
+                    //event_id: event_code,
                     user_id: parseInt(userId, 10),
                     group_name: 'solo',
                 }),
@@ -143,7 +143,7 @@ const handleRegsiteration = async () => {
                     Authorization: `Bearer ${token}`,
                 }, 
                 body:JSON.stringify({
-                    event_id: eventId,
+                    event_id: event_code,
                     team_name: teamName,
                     members: members.map((m) => ({
                         member_name : m.name,
@@ -211,7 +211,7 @@ const handleRegsiteration = async () => {
 
             <Text> Enter 1 in Event ID</Text>
 
-            <CustomInput label="Event ID" placeholder="Enter event ID" value={eventId} onChangeText={seteventId} />
+            <CustomInput label="Event ID" placeholder="Enter event ID" value={event_code} onChangeText={setEventCode} />
             <CustomInput label='Leader Name' placeholder='' value={leaderName} editable={false}/>
             <CustomInput label="Leader Email" placeholder="" value={leaderEmail} editable={false} />
 

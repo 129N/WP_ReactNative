@@ -25,7 +25,7 @@ type TrackPoint = {
 
 //export const BASE_URL = 'http://192.168.0.103:8001/api';
 //the URL is made throught the ngrok function 'https://abc123.ngrok.io/api';
-export const BASE_URL = 'https://d14e09224700.ngrok-free.app/api';
+export const BASE_URL = 'https://e44d82013604.ngrok-free.app/api';
 
 const GPXLoader = () => {
 

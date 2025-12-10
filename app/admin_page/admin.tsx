@@ -1,7 +1,3 @@
-
-
-
-
 // import AppLayout from '@/layouts/app-layout'; 
 
 import { useRouter } from 'expo-router';
@@ -44,6 +40,38 @@ export default function Participant(){
                   <Text style={styles.buttonText}>View Map </Text> 
                   <Text style={styles.buttonText}>View Map </Text> 
                 </TouchableOpacity>
+
+
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
+                  onPress={() => router.push('../admin_page/newfileloader')}> {/* upload GPX  GPX_Processor */}
+                  <Text style={styles.buttonText}>Upload GPX File</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#10B981' }]} // green
+                    onPress={() => router.push('/admin_page/adminDashBoard')}>
+                    <Text style={styles.buttonText}>Manage Events(event table creation)</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#fbff00ff' }]} // green
+                    onPress={() => router.push('../admin_page/adm_Datalist')}>
+                    <Text style={styles.buttonText}>Participant LIst</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={[styles.button, { backgroundColor: '#2bac31ff' }]} // green
+                  onPress={() => router.push('/comp/EventLists')}>
+                  <Text style={styles.buttonText}>Event Lists</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                    style={[styles.button, { backgroundColor: '#bb00ffff' }]} // green
+                    onPress={() => router.push('/admin_page/Route_Recording')}>
+                    <Text style={styles.buttonText}>Recording</Text>
+                </TouchableOpacity>
+                
             </View>
     </View>
     );

@@ -13,6 +13,7 @@ type Position = {
 
 import * as FileSystem from "expo-file-system";
 import * as Location from "expo-location";
+import { useRouter } from "expo-router";
 import getDistance from "geolib/es/getPreciseDistance";
 import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -22,13 +23,17 @@ import { BASE_URL } from "./newfileloader";
     const bar = "  // ---------------------------";
 
 //File save method //LEARN
-    const FS: any = FileSystem;
-    const saveGPXToFile = async(gpxString: string) =>{
-        const fileUri = FS.cacheDirectory + "route.gpx";
-    await FS.writeAsStringAsync(fileUri, gpxString);
-    return fileUri;
-    };
+    // const FS: any = FileSystem;
+    // const saveGPXToFile = async(gpxString: string) =>{
+    //     const fileUri = FS.cacheDirectory + "route.gpx";
+    // await FS.writeAsStringAsync(fileUri, gpxString);
+    // return fileUri;
+    // };
 
+    const FS:any = FileSystem;
+
+
+    const router = useRouter();
 
 const VRouteRecording = () => {
 
@@ -47,7 +52,9 @@ const VRouteRecording = () => {
 // Generate GPX
 const [generatedGPX, setGeneratedGPX] = useState<string | null>(null);
 const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
-
+const [fileId, setFileId] = useState<number | null>(null);
+const [GpxReady, setGpxReady] = useState(false);
+const [FileID, setUploadedFileId] = useState();
 
 // Ture False appear button
     const [active, setActive] = useState(false);
@@ -173,8 +180,6 @@ const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
                     return;
             }
 
-
-
              if (trackPoints.length > 0) {
                 const prev = trackPoints[trackPoints.length - 1];
 
@@ -211,26 +216,34 @@ const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
         );
     };
 
+    const saveGPXToFile = async(gpxString: string): Promise<string> =>{
+      const fileUri = FS.cacheDirectory + "route.gpx";
+      await FS.writeAsStringAsync(fileUri, gpxString);
+      setGeneratedFileUri(fileUri);
+      console.log("📁 GPX saved locally:", fileUri);
+
+       return fileUri;
+    };
+
     const generateGPX = async ():Promise<string> =>{
         try{
-
             console.log("📄 Generating GPX...");
+            const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
+            <gpx version="1.1" creator="WaypointTracker" xmlns="http://www.topografix.com/GPX/1/1">`;
 
-                    const gpxHeader = `<?xml version="1.0" encoding="UTF-8"?>
-                    <gpx version="1.1" creator="WaypointTracker" xmlns="http://www.topografix.com/GPX/1/1">`;
-            // waypoints format
-                    const wpts = waypoints.map(w => 
-                    `<wpt lat="${w.lat}" lon="${w.lon}">
-                        <name>${w.name}</name>
-                        <time>${w.time}</time>
-                    </wpt>`).join("\n");
+// waypoints format
+            const wpts = waypoints.map(w => 
+            `<wpt lat="${w.lat}" lon="${w.lon}">
+                <name>${w.name}</name>
+                <time>${w.time}</time>
+            </wpt>`).join("\n");
 
-            // trackpoints format
-                    const trkpts = trackPoints.map(tp => 
-                        `<trkpt lat="${tp.latitude}" lon="${tp.longitude}">
-                            <time>${tp.time}</time>
-                        </trkpt>`
-                    ).join("\n");
+// trackpoints format
+            const trkpts = trackPoints.map(tp => 
+            `<trkpt lat="${tp.latitude}" lon="${tp.longitude}">
+              <time>${tp.time}</time>
+              </trkpt>`
+            ).join("\n");
 
             const gpx = `
                     ${gpxHeader}
@@ -245,15 +258,10 @@ const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
 
                 // Save to state for later upload
                 setGeneratedGPX(gpx);
-            // Save file
-                const FS: any = FileSystem; //LEARN
-                const fileUri = FS.cacheDirectory + "recorded_route.gpx";
-                await FS.writeAsStringAsync(fileUri, gpx, { encoding: FS.EncodingType.UTF8 });
+                setGpxReady(true);
 
-                setGeneratedFileUri(fileUri);
-
-                Alert.alert("GPX Ready", "The GPX file has been generated and saved.");
-                console.log("📁 GPX saved at:", fileUri);
+                Alert.alert("GPX Generation OK");
+     
             return gpx;
         }
         catch(err){
@@ -265,64 +273,62 @@ const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
     };
 
 
-  const uploadRecordedGPX = async() =>{
+  const uploadRecordedGPX = async() =>{ //TODO add the fileID 
     try{
-    if (!generatedFileUri) {
-        Alert.alert("Error", "No GPX file generated yet.");
+    if (!generatedFileUri || !generatedGPX) {
+        Alert.alert("Error", "No GPX file.");
         return;
     }
 
+    const fileUri = await saveGPXToFile(generatedGPX);
+    setGeneratedFileUri(fileUri);
+
     console.log("⬆️ Uploading GPX:", generatedFileUri);
 
-        const gpxString = await generateGPX(); // FIXED
-        const fileUri = await saveGPXToFile(gpxString);
-        
-        if (!fileUri) {
-          alert('No file selected.');
-          return;
-        }
-
-//File Upload Validation
-        const FS: any = FileSystem; //LEARN
-            const info = await FS.getInfoAsync(fileUri);
-            console.log(info);
-            if (!info.exists) {
-                Alert.alert("Saving Error", "GPX file was not saved correctly!");
-                return;
-            }
-
         const form = new FormData();
+        // Add the META DATA file id and Route name
+        if (fileId) form.append("file_id", String(fileId)); //update existing
+        form.append("route_name", "Recorded Route " + Date.now());
         form.append("gpx_file",{
-            uri: fileUri,
-            name: "route.gpx",
+            uri: generatedFileUri,
+            name: "recorded_route.gpx",
             type: "application/gpx+xml",
         } as any); //FIXED or as unknown as Blob //LEARN
 
         const res = await fetch(`${BASE_URL}/ADM_GPX_UPLOAD`, {
             method: "POST",
-            headers: {
-                "Content-Type": "multipart/form-data",
-            },
             body: form,
+            headers: {"Content-Type": "multipart/form-data"},
         });
 
-        if(res.ok){
-            const json = await res.json();
-            console.log("GPX Upload Result:", json);
-            alert("GPX upload complete!");
-            setTrackPoints([]);
-            setWaypoints([]);
-            setCurrentPosition(null);
-            setRecordingState(RecordingStates.Idle);
+          const json = await res.json();
+          console.log("GPX Upload Result:", json);
+
+        if (!res.ok) {
+          Alert.alert("Upload Failed", json.error || "Unknown error");
+          return;
         }
-        else{
-            alert("ERROR: GPX upload FAIL!");
-        }
+
+        // Store the ID for editing in React-Web later
+        setUploadedFileId(json.file_id);
+          setFileId(json.file_id);
+
+          Alert.alert(
+            "GPX upload complete",
+            `Route: ${json.route_name ?? "Unnamed"}\nfile_id: ${json.file_id}`
+          );
+    
+//Optional
+          setTrackPoints([]);
+          setWaypoints([]);
+          setCurrentPosition(null);
+          setRecordingState(RecordingStates.Idle);
+   setGpxReady(false);
 
     }
     catch(err){
         console.error("Upload failed:", err);
-        alert("Catch Error");
+        Alert.alert("Catch Error");
     }
   };
 
@@ -400,29 +406,43 @@ const [generatedFileUri, setGeneratedFileUri] = useState<string | null>(null);
           <Text>Waypoints collected: {waypoints.length}</Text>
 
     {/* Generate GPX */}
-          <TouchableOpacity style={styles.btnGenerate} onPress={generateGPX}>
-            <Text style={styles.btnText}>Generate GPX</Text>
-          </TouchableOpacity>
+      <TouchableOpacity style={styles.btnGenerate} onPress={generateGPX}>
+        <Text style={styles.btnText}>Generate GPX</Text>
+      </TouchableOpacity>
 
     {/* Reset GPX */}
-          <TouchableOpacity style={styles.btnStart} onPress={() => {
-            setRecordingState(RecordingStates.Idle); // <-- OK only for reset
-            setTrackPoints([]);
-            setWaypoints([]);
-            setCurrentPosition(null);
-          }}>
-            <Text style={styles.btnReset}>Reset</Text>
-          </TouchableOpacity>
-        </View>
+      <TouchableOpacity style={styles.btnStart} onPress={() => {
+        setRecordingState(RecordingStates.Idle); // <-- OK only for reset
+        setTrackPoints([]);
+        setWaypoints([]);
+        setCurrentPosition(null);
+      }}>
+        <Text style={styles.btnReset}>Reset</Text>
+      </TouchableOpacity>
+
+       {GpxReady && ( 
+        <TouchableOpacity style={styles.btnUpload} onPress={uploadRecordedGPX}>
+          <Text style={styles.btnText}>Upload</Text>
+        </TouchableOpacity>
       )}
 
-{/* Uploading mode  IF: finish and the generateGPX was pressed*/} 
-      {recordingState === RecordingStates.Finished && active ? (
-        <TouchableOpacity style={styles.btnUpload} onPress={uploadRecordedGPX}>
-            <Text style={styles.btnText}>Upload</Text>
+      {GpxReady && ( 
+       <TouchableOpacity
+        style={styles.btnStart}
+        onPress={() => router.push("/admin_page/Admin_Map/GpxFileList")}
+        >
+        <Text style={styles.btnText}>View GPX Files</Text>
         </TouchableOpacity>
-      ):(
-        <Text> The recording has not finished yet</Text>
+
+      )}
+
+      {FileID && (
+        <Text style={{ marginTop: 10 }}>
+          Last uploaded GPX file_id: {fileId}
+        </Text>
+      )}
+
+        </View>
       )}
 
     </View>
@@ -446,7 +466,7 @@ const styles = StyleSheet.create({
   btnStop: { padding: 15, backgroundColor: "#dc2626", marginVertical: 10, borderRadius: 8 },
   btnUpload: { padding: 15, backgroundColor: "#000cf4ff", marginVertical: 10, borderRadius: 8 },
   btnGenerate:{ padding: 15, backgroundColor: "#00a3f4ff", marginVertical: 10, borderRadius: 8 },
-  btnReset: { padding: 15, backgroundColor: "#000000ff", marginVertical: 10, borderRadius: 8 },
+  btnReset: { padding: 15, backgroundColor: "#ffffffff", marginVertical: 10, borderRadius: 8 },
   btnText: { textAlign: "center", color: "white", fontWeight: "bold" }
 });
 

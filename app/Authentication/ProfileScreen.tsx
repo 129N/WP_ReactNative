@@ -2,8 +2,9 @@
 import Header from '@/components/Header';
 import { Colors } from '@/constants/Colors';
 import { fontSize, iconSize_dimension, spacing } from '@/constants/dimensions';
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 // Icon import 
 import { Feather, MaterialIcons } from '@expo/vector-icons';
 
@@ -30,7 +31,6 @@ export default function ProfileScreen() {
     }
     }, [isLoggedIn, user]);
 
-
      
     if(isLoggedIn){
         console.log("Welcome back", user?.name);
@@ -41,7 +41,7 @@ export default function ProfileScreen() {
         try{
             const response = await fetch(`${BASE_URL}/login_react`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json", Accept: "application/json" },
+                    headers: { "Content-Type": "application/json", "Accept": "application/json" },
                     body: JSON.stringify({ email, password }),
             });
 
@@ -80,8 +80,8 @@ export default function ProfileScreen() {
             const response = await fetch(`${BASE_URL}/logout` ,{
                 method: 'POST',
                 headers: {
-                    Authorization: `Bearer ${token}`,  
-                    Accept: 'application/json',
+                    'Authorization': `Bearer ${token}`,  
+                    'Accept': 'application/json',
                 },
             });
 
@@ -107,7 +107,7 @@ export default function ProfileScreen() {
 
 
     return (
-      <ScrollView 
+      <KeyboardAwareScrollView 
             style={styles.container} contentContainerStyle= { {paddingBottom:2 * spacing.md}}>
 
          <Header/>
@@ -186,7 +186,7 @@ export default function ProfileScreen() {
 
             </View>
 
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
     );
 

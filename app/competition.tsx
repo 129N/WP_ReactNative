@@ -4,8 +4,6 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 
-
-
 export default function CMP() {
   const [darkMode, setDarkMode] = useState(false);
 
