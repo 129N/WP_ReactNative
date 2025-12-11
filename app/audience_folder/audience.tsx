@@ -1,7 +1,3 @@
-
-
-
-
 // import AppLayout from '@/layouts/app-layout'; 
 
 import { useRouter } from 'expo-router';
@@ -32,9 +28,9 @@ export default function Audience(){
 
 
                 <TouchableOpacity
-                style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
-                onPress={() => router.push('/admin_page/adm_panel')}>
-                <Text style={styles.buttonText}>Get digit code</Text> 
+                style={[styles.button, { backgroundColor: '#ff5100ff' }]} // blue
+                onPress={() => router.push('/')}>
+                <Text style={styles.buttonText}>Audience View</Text> 
                 </TouchableOpacity>
                 
                 {/* Create Map, Detail input */}

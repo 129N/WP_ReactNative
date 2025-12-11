@@ -11,12 +11,13 @@ type Position = {
     accuracy: number | null;
 };
 
-import * as FileSystem from "expo-file-system";
+import * as FS from "expo-file-system/legacy";
 import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import getDistance from "geolib/es/getPreciseDistance";
 import { useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+
 import { BASE_URL } from "./newfileloader";
 
     const LOCATION_TASK = "ROUTE_RECORDING_TASK";
@@ -29,8 +30,6 @@ import { BASE_URL } from "./newfileloader";
     // await FS.writeAsStringAsync(fileUri, gpxString);
     // return fileUri;
     // };
-
-    const FS:any = FileSystem;
 
 
     const router = useRouter();
@@ -216,14 +215,44 @@ const [FileID, setUploadedFileId] = useState();
         );
     };
 
-    const saveGPXToFile = async(gpxString: string): Promise<string> =>{
-      const fileUri = FS.cacheDirectory + "route.gpx";
-      await FS.writeAsStringAsync(fileUri, gpxString);
-      setGeneratedFileUri(fileUri);
-      console.log("📁 GPX saved locally:", fileUri);
+//     const saveGPXToFile = async(gpxString: string): Promise<string> =>{
+//        // Use documentDirectory to ensure iOS supports it
+//         const dir = await Directory.documentDirectory();
+//     const file = dir.file("route.gpx"); // create file path
+//  await file.write(gpxString, { encoding: "utf8" });
 
-       return fileUri;
-    };
+ 
+//       // const fileUri = FS.cacheDirectory + "route.gpx";
+//       // await FS.writeAsStringAsync(fileUri, gpxString);
+//       // setGeneratedFileUri(fileUri);
+//       // console.log("📁 GPX saved locally:", fileUri);
+
+//       //  return fileUri;
+
+//         await file.write(gpxString, { encoding: "utf8" });
+
+//       console.log("📁 GPX saved to:", file.uri);
+//     return file.uri;
+//     };
+
+
+const saveGPXToFile = async (gpxString: string): Promise<string> => {
+  try {
+    const fileUri = FS.documentDirectory + "route.gpx";
+
+    await FS.writeAsStringAsync(fileUri, gpxString, {
+      encoding: FS.EncodingType.UTF8,
+    });
+
+    console.log("📁 GPX saved locally:", fileUri);
+    return fileUri;
+
+  } catch (err) {
+    console.error("❌ Error saving GPX:", err);
+    throw err;
+  }
+};
+
 
     const generateGPX = async ():Promise<string> =>{
         try{
@@ -275,7 +304,7 @@ const [FileID, setUploadedFileId] = useState();
 
   const uploadRecordedGPX = async() =>{ //TODO add the fileID 
     try{
-    if (!generatedFileUri || !generatedGPX) {
+    if (!generatedGPX) {
         Alert.alert("Error", "No GPX file.");
         return;
     }
@@ -290,7 +319,7 @@ const [FileID, setUploadedFileId] = useState();
         if (fileId) form.append("file_id", String(fileId)); //update existing
         form.append("route_name", "Recorded Route " + Date.now());
         form.append("gpx_file",{
-            uri: generatedFileUri,
+            uri: fileUri,
             name: "recorded_route.gpx",
             type: "application/gpx+xml",
         } as any); //FIXED or as unknown as Blob //LEARN
