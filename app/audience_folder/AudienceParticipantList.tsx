@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import type { Participant } from "./AudienceEventScreen";
 
@@ -12,6 +12,12 @@ const AudienceParticipantList: React.FC<Props> = ({ participants }) => {
   const [filterName, setFilterName] = useState("");
   const [filterTeam, setFilterTeam] = useState("all");
   const [filterStatus, setFilterStatus] = useState("all");
+
+
+    useEffect(() => {
+    applyFilters();
+  }, [participants, filterName, filterTeam, filterStatus]);
+
 
   const applyFilters = () => {
     if(!participants){

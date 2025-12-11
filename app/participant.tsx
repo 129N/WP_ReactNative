@@ -42,7 +42,7 @@ export default function Participant(){
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#3B82F6' }]} // blue
                 onPress={() => router.push('../comp/Gyroscope')}>
-                <Text style={styles.buttonText}>Participate in competition</Text> 
+                <Text style={styles.buttonText}>Participate in GyroScope</Text> 
                 </TouchableOpacity>
 
                 {/* <TouchableOpacity
@@ -63,7 +63,7 @@ export default function Participant(){
                   style={[styles.button, { backgroundColor: '#8B5CF6' }]} // purple
                   onPress={() => router.push('../admin_page/newfileloader')}
                 >
-                  <Text style={styles.buttonText}>New File load</Text>
+                  <Text style={styles.buttonText}>Event participate</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity

@@ -193,8 +193,6 @@ const BEPass = async () => {
             longitude: parseFloat(tp.lon),
           })) || [];
 
-
-
           setWaypoints(wpArray);
           setTrackPoints(TrkArray);
 
@@ -564,64 +562,3 @@ toggleContainer : {
 
 export default execution;
 
-{/**
-    
-     useEffect( () => {
-
-    let subscriber: Location.LocationSubscription;
-
-    const startTracking = async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') {
-      alert('Permission to access location was denied');
-      return;
-    }
-
-
-
-    subscriber = await Location.watchPositionAsync(
-        {
-        accuracy: Location.Accuracy.High,
-        timeInterval: 3000,  // every 3 seconds
-        distanceInterval: 1, // or every 1 meter
-      },
-      (location) => {
-        const { latitude, longitude } = location.coords;
-        const newPosition = { latitude, longitude };
-        setCurrentPosition(newPosition);
-
-        // Calculate distance, bearing, ETA
-        if (waypoints.length > 1) {
-          const nextWaypoint = waypoints[1]; // or your next target
-          const distance = getDistance(newPosition, {
-            latitude: nextWaypoint.latitude,
-            longitude: nextWaypoint.longitude,
-          });
-
-          setDistanceToNext (distance/1000);
-
-            const bearingToNext = getBearing(
-                        latitude,
-                        longitude,
-                        nextWaypoint.latitude,
-                        nextWaypoint.longitude
-                    );
-                setBearing(bearingToNext);
-
-          const etaInHours = distance / 1000 / speed;
-          setEta(etaInHours * 60); // ETA in minutes
-            } 
-        } 
-        );
-        }; 
-
-        startTracking();
-
-        return() => {
-             if (subscriber) {
-      subscriber.remove();
-    }
-        };
-
-}, [waypoints, speed]);
-    */}

@@ -29,16 +29,10 @@ export default function Audience(){
 
                 <TouchableOpacity
                 style={[styles.button, { backgroundColor: '#ff5100ff' }]} // blue
-                onPress={() => router.push('/')}>
+                onPress={() => router.push('/audience_folder/AudienceEventScreen')}>
                 <Text style={styles.buttonText}>Audience View</Text> 
                 </TouchableOpacity>
                 
-                {/* Create Map, Detail input */}
-                <TouchableOpacity
-                  style={[styles.button, { backgroundColor: '#10B981' }]} // green
-                  onPress={() => router.push('/Authentication/Login')}>
-                  <Text style={styles.buttonText}>???</Text>
-                </TouchableOpacity>
             </View>
     </View>
     );
