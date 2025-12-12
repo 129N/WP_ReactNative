@@ -2,15 +2,15 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { JSX, useEffect, useState } from "react";
 import type { Position, TrackPoint, Waypoint } from "./ParticipantEvent";
 
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { LocationObject } from 'expo-location';
 import * as Location from "expo-location";
 import type { TaskManagerError } from 'expo-task-manager';
 import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import getBearing from "../comp/GPXfunction";
-
 
 
 // ---- Background location task (same idea as in Allmighty) ----
@@ -46,7 +46,7 @@ import getBearing from "../comp/GPXfunction";
   const [speed, setSpeed] = useState(10); // Example speed in km/h
 
   const [visibleTrackPoints, setVisibleTrackPoints] = useState<TrackPoint[]>([]);
-
+  const [viewmode, setViewMode] = useState<'waypoints'| 'trackpoints'>('waypoints');
 
   // to keep compatibility with Allmighty variables (even if not heavily used here)
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(
@@ -119,6 +119,43 @@ useEffect(()=> {
 
   return () => clearInterval(interval);
 }, []);
+
+
+useEffect(() => {
+  let subscriber: Location.LocationSubscription | null = null;
+
+  const startForegroundTracking = async () => {
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      alert("GPS permission not granted.");
+      return;
+    }
+
+    subscriber = await Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.High,
+        distanceInterval: 1,    // 1m movement updates
+        timeInterval: 2000,     // update every 2 sec
+      },
+      (loc) => {
+        const coords = {
+          latitude: loc.coords.latitude,
+          longitude: loc.coords.longitude,
+        };
+
+        console.log("📍 Foreground position:", coords);
+        setCurrentPosition(coords);    // <<<<<< ここが全ての中心
+      }
+    );
+  };
+
+  startForegroundTracking();
+
+  return () => {
+    if (subscriber) subscriber.remove();
+  };
+}, []);
+
 
 
 // === 4) Visible segment of route near the runner (like your Allmighty logic) ===
@@ -298,14 +335,171 @@ useEffect(() => {
 
 return (
     <View style={styles.container}>
+      {/* Toggle Buttons */}
+    <View style={styles.toggleContainer}>
+      <TouchableOpacity
+        style={[styles.toggleButton,viewmode === 'waypoints' && styles.activeButton, ]}
+        onPress={() => setViewMode('waypoints')}
+      >
+        <Text
+          style={[ styles.toggleText, viewmode === 'waypoints' && styles.activeText, ]}
+        >
+          Waypoints
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.toggleButton,viewmode === 'trackpoints' && styles.activeButton,]}
+        onPress={() => setViewMode('trackpoints')}
+      >
+        <Text
+          style={[styles.toggleText,viewmode === 'trackpoints' && styles.activeText, ]}
+        >
+          Track Points
+        </Text>
+      </TouchableOpacity>
+    </View>
+
+
+
+ {/* Distance / ETA */}
+
+
+    <Text>Bearing: {bearing ? bearing.toFixed(1) : '---'}°</Text>
+    <Text>Distance: {distanceToNext ? distanceToNext.toFixed(2) : '---'} km</Text>
+    <Text>ETA: {eta ? eta.toFixed(1) : '---'} minutes</Text>
+
+     {/* WAYPOINT MODE */}
+    {viewmode === 'waypoints' ? (
+      <>
+        <Text style={styles.title}>🟢 Waypoints Mode</Text>
       <Text style={styles.title}>Direction to Next WP:</Text>
+        {bearing !== null && (
+          <View style={styles.arrowContainer}>
+            <Ionicons
+              name="arrow-up-outline"
+              size={40}
+              color="blue"
+              style={{ transform: [{ rotate: `${bearing}deg` }] }}
+            />
+            <Text>Bearing: {bearing.toFixed(1)}°</Text>
+            <Text style={{ textAlign: 'center' }}>Direction</Text>
+          </View>
+        )}
+      </>
+    ) : null}
 
-      <Text style={styles.arrowText}>➡️ {bearingText}°</Text>
 
-      <View style={styles.dataContainer}>
-        <Text style={styles.infoText}>Distance: {distanceKm} km</Text>
-        <Text style={styles.infoText}>ETA: {kakaoetA} min</Text>
-      </View>
+    {/* TRACK POINTS MODE */}
+    {viewmode === 'trackpoints' ? (
+      <>
+
+        <Text style={styles.title}>🔵 Track Point Mode</Text>
+
+        {Array.isArray(visibleTrackPoints) && visibleTrackPoints.length > 1 && (
+          (() => {
+
+            const svgWidth = 360;
+            const svgHeight = 400;
+
+            const lats = visibleTrackPoints.map(tp => tp.latitude);
+            const lons = visibleTrackPoints.map(tp => tp.longitude);
+
+            const minLat = Math.min(...lats);
+            const maxLat = Math.max(...lats);
+            const minLon = Math.min(...lons);
+            const maxLon = Math.max(...lons);
+
+            const padding = 30;
+
+            const lonRange = maxLon - minLon || 1e-6;
+            const latRange = maxLat - minLat || 1e-6;
+
+            const scale = Math.min(
+              (svgWidth - padding * 2) / lonRange,
+              (svgHeight - padding * 2) / latRange
+            );
+
+            const xOffset = (svgWidth - lonRange * scale) / 2;
+            const yOffset = (svgHeight - latRange * scale) / 2;
+
+            const project = (lat: number, lon: number) => {
+              const x = xOffset + (lon - minLon) * scale;
+              const y = svgHeight - (yOffset + (lat - minLat) * scale);
+              return { x, y };
+            };
+
+            return (
+              <Svg height={svgHeight} width={svgWidth}>
+
+                {/* ROUTE LINES */}
+                {visibleTrackPoints.map((tp, index) => {
+                  if (index === 0) return null;
+                  const curr = project(tp.latitude, tp.longitude);
+                  const prev = project(
+                    visibleTrackPoints[index - 1].latitude,
+                    visibleTrackPoints[index - 1].longitude
+                  );
+                  return (
+                    <Line
+                      key={`line-${index}`}
+                      x1={prev.x}
+                      y1={prev.y}
+                      x2={curr.x}
+                      y2={curr.y}
+                      stroke="#1E90FF"
+                      strokeWidth={3}
+                    />
+                  );
+                })}
+
+                {/* BLUE DOTS */}
+                {visibleTrackPoints.map((tp, idx) => {
+                  const p = project(tp.latitude, tp.longitude);
+                  return (
+                    <Circle
+                      key={`tp-${idx}`}
+                      cx={p.x}
+                      cy={p.y}
+                      r={4}
+                      fill="#1E90FF"
+                    />
+                  );
+                })}
+
+                {/* RED USER DOT */}
+                {currentPosition && (() => {
+                  return (
+                    <Circle
+                      cx={svgWidth / 2}
+                      cy={svgHeight - 10}
+                      r={6}
+                      fill="red"
+                    />
+                  );
+                })()}
+
+              </Svg>
+            );
+          })()
+        )}
+
+      </>
+    ) : null}
+
+
+    {/* BUTTONS */}
+    <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
+      <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
+      <Text style={styles.buttonText}>HELP</Text>
+    </TouchableOpacity>
+
+    <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}>
+      <MaterialCommunityIcons name="exit-run" size={20} color="white" />
+      <Text style={styles.buttonText}>Surrender</Text>
+    </TouchableOpacity>
+
+
 
       <View style={styles.miniMapContainer}>
         <Text style={styles.miniMapTitle}>Route Overview</Text>
@@ -324,14 +518,14 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     flex: 1,
-    backgroundColor: "#020617",
+    backgroundColor: "#ffffffff",
     justifyContent: "flex-start",
     alignItems: "center",
   },
   title: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#e5e7eb",
+    color: "#000000ff",
     marginBottom: 16,
   },
   arrowText: {
@@ -347,7 +541,7 @@ const styles = StyleSheet.create({
   },
   infoText: {
     fontSize: 16,
-    color: "#e5e7eb",
+    color: "#000000ff",
     marginBottom: 4,
   },
   miniMapContainer: {
@@ -364,6 +558,37 @@ const styles = StyleSheet.create({
     color: "#9ca3af",
     marginBottom: 8,
     textAlign: "center",
+  },
+  toggleText :{    
+  color: '#000000ff',
+  fontWeight: 'bold',
+},
+toggleButton :{
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#000000ff',
+    borderRadius: 8,
+    marginHorizontal: 5,
+},
+activeButton : {
+  backgroundColor: '#2563eb',
+  borderColor: '#2563eb',
+}, 
+activeText : {
+    color: '#fff',
+},
+toggleContainer : {
+    flexDirection: 'row',
+  justifyContent: 'center',
+  marginVertical: 10,
+}, 
+    button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
+    buttonText: { color: 'white', marginLeft: 8, fontWeight: 'bold' },
+
+    arrowContainer: {
+    alignItems: 'center',
+    marginTop: 30,
   },
 
 });

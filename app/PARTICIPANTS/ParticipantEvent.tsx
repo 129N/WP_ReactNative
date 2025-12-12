@@ -61,12 +61,13 @@ useEffect(() => {
 
 const validateParticipant = async(event_code: string): Promise<boolean> => {
     try{
-        const token = await AsyncStorage.getItem("token");
+        const token = await AsyncStorage.getItem("authToken");
         const userId = await AsyncStorage.getItem("userId");
 
         if (!token || !userId) {
+            console.log(token, userId);
             Alert.alert("Not logged in");
-            router.push("/participant");
+            // router.push("/participant");
             return false;
         }
 
@@ -211,7 +212,7 @@ const BEPass = async () => {
     marginBottom: 10,
     },
     
-    input: {
+input: {
   width: "100%",
   borderWidth: 1,
   borderColor: "#ccc",
@@ -219,30 +220,7 @@ const BEPass = async () => {
   borderRadius: 8,
   marginBottom: 10,
 },
-    button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
+button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
 buttonText: { color: 'white', marginLeft: 8, fontWeight: 'bold' },
-toggleText :{    
-  color: '#fff',
-  fontWeight: 'bold',
-},
-toggleButton :{
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderWidth: 1,
-    borderColor: '#aaa',
-    borderRadius: 8,
-    marginHorizontal: 5,
-},
-activeButton : {
-  backgroundColor: '#2563eb',
-  borderColor: '#2563eb',
-}, 
-activeText : {
-    color: '#fff',
-},
-toggleContainer : {
-    flexDirection: 'row',
-  justifyContent: 'center',
-  marginVertical: 10,
-}, 
+
 });

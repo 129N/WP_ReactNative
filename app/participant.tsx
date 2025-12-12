@@ -61,7 +61,7 @@ export default function Participant(){
 
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#8B5CF6' }]} // purple
-                  onPress={() => router.push('../admin_page/newfileloader')}
+                  onPress={() => router.push('/PARTICIPANTS/ParticipantEvent')}
                 >
                   <Text style={styles.buttonText}>Event participate</Text>
                 </TouchableOpacity>
