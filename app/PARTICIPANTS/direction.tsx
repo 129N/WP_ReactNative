@@ -10,6 +10,7 @@ import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
+import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
 
 
@@ -333,6 +334,48 @@ useEffect(() => {
 
     } 
 
+    const sendNotification = async (type: "emergency" | "surrender", message: string) => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        const userId = await AsyncStorage.getItem("userId");
+        const event_code = await AsyncStorage.getItem("event_code");
+
+        if (!token || !userId || !event_code) {
+          alert("Authentication data missing");
+          return;
+        }
+
+      const res = await fetch(`${BASE_URL}/events/${event_code}/notifications`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          participant_id: Number(userId),
+          type,
+          message,
+        }),
+      }
+    );
+
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Notification error:", text);
+      alert("Failed to send notification");
+      return;
+    }
+  console.log("Sending type:", type);
+
+    console.log(`✅ ${type} notification sent`);
+  } catch (err) {
+    console.error("sendNotification error:", err);
+    alert("Notification failed");
+  }
+};
+
+
 return (
     <View style={styles.container}>
       {/* Toggle Buttons */}
@@ -489,12 +532,26 @@ return (
 
 
     {/* BUTTONS */}
-    <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}>
+    <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}
+      onPress={() =>
+    sendNotification(
+      "emergency",
+      "Participant requested EMERGENCY HELP assistance"
+    )
+  }
+    >
       <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
       <Text style={styles.buttonText}>HELP</Text>
     </TouchableOpacity>
 
-    <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}>
+    <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}
+    onPress={() =>
+    sendNotification(
+      "surrender",
+      "Participant requested SURRENDER"
+    )
+  }
+    >
       <MaterialCommunityIcons name="exit-run" size={20} color="white" />
       <Text style={styles.buttonText}>Surrender</Text>
     </TouchableOpacity>
