@@ -5,7 +5,7 @@ import React from "react";
 import { iconSize_dimension } from "@/constants/dimensions";
 import { Ionicons, Octicons } from "@expo/vector-icons";
 import { useNavigation, useRouter } from "expo-router";
-import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 
 
@@ -18,24 +18,10 @@ const handleOpenSettng = () =>{
 // navigation.navigate(Setting.tsx)
 };
 
-    const style = StyleSheet.create({
-        container: {
-    flexDirection: 'row',
- justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 16, // add space between icons
-    paddingHorizontal: 16,
-    marginTop : 15
-  },
-
-    });
-
     return (
-      <ScrollView>
 
-
-            <View style = {style.container}>
-                <TouchableOpacity onPress={() => router.push('/')}>
+            <View style = {styles.container}>
+                <TouchableOpacity onPress={() => router.back()}>
                     <Ionicons name={"arrow-back"} color={"#00000"} size = {iconSize_dimension.md} /> {/* from constants*/ }
                 </TouchableOpacity>
 
@@ -44,9 +30,19 @@ const handleOpenSettng = () =>{
                 </TouchableOpacity>
 
             </View>
-
-
-      </ScrollView>
-
     );
+
 }
+
+
+  const styles = StyleSheet.create({
+  container: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 270,
+    paddingHorizontal: 16,
+    marginTop: 15,
+  },
+});
+

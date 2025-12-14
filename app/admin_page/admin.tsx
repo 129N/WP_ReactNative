@@ -3,15 +3,16 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from '../comp/ScreenWrapper';
 
-export default function Participant(){
+export default function adminDashBoard(){
 
     const router = useRouter();
 
     return (
-
-    <View style= {styles.container}> 
-        <Text style = {styles.header}>Admin.tsx</Text>
+<Screen>
+  <View style= {styles.container}> 
+        <Text style={styles.header}>Admin.tsx</Text>
             <View style = {styles.buttonContainer}>
                 <TouchableOpacity 
                  style={[styles.button, { backgroundColor: '#EF4444' }]} // red
@@ -73,6 +74,9 @@ export default function Participant(){
                 
             </View>
     </View>
+
+</Screen>
+    
     );
 }
 

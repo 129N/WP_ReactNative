@@ -1,69 +1,65 @@
 import { ThemedText } from '@/components/ThemedText';
-import HomeBTN from '@/components/ui/Home_BTN';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Screen from '../comp/ScreenWrapper';
 export default function HomeScreen() {
 
   const router = useRouter();
   
  return (
-
-
-   <View style={styles.container}>
-
-         <ThemedText type="subtitle"> Here is index.tsx </ThemedText>.
-
-    <HomeBTN title="Participant" color="#3B82F6" to="participant" />
-      <HomeBTN title="Event Organizer (Admin)" color="#10B981" to="/admin_page/admin" />
-      <HomeBTN title="Audience" color="#8B5CF6" to="/audience_folder/audience" />
-     <HomeBTN title="WP_Button" color="#8B5CF6" to="/comp/WPScreen" />
-        
+<Screen>
+ <View style={styles.container}>
+      <ThemedText type="subtitle">Here is index.tsx</ThemedText>
 
       <TouchableOpacity
-      style={[styles.button, { backgroundColor: '#FFC0CB' }]} // blue
-      onPress={() => router.push('../Authentication/registration')}>
-      <Text style={styles.buttonText}> Regsitration</Text>
+        style={[styles.button, { backgroundColor: "#10B981" }]}
+        onPress={() => router.push("/admin_page/admin")}
+      >
+        <Text style={styles.buttonText}>Event Organizer (Admin)</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "#ff0000ff" }]}
+        onPress={() => router.push("/audience_folder/audience")}
+      >
+        <Text style={styles.buttonText}>Audience</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "#8B5CF6" }]}
+        onPress={() => router.push("/comp/WPScreen")}
+      >
+        <Text style={styles.buttonText}>WP_Button</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.button, { backgroundColor: "#FFC0CB" }]}
+        onPress={() => router.push("/Authentication/registration")}
+      >
+        <Text style={styles.buttonText}>Registration</Text>
       </TouchableOpacity>
     </View>
+
+</Screen>
 
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
-  },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
-  },
   container: {
-    padding: 48,
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  }, 
-  
+    padding: 16,
+    justifyContent: "center",
+  },
   button: {
-      paddingVertical: 12,
-      paddingHorizontal: 24,
-      borderRadius: 8,
-      marginBottom: 8,
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    buttonText: {
-      color: '#fff',
-      fontWeight: 'bold',
-      fontSize: 16,
-    },
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
+  },
 });

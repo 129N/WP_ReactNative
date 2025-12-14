@@ -50,7 +50,7 @@ useEffect(() => {
         const ok = await validateParticipant(storedCode);
         if (!ok) return;
 
-        await fetchEventRoute(storedCode);
+        // await fetchEventRoute(storedCode);
       } catch (err) {
         console.error("init error:", err);
       }
@@ -204,7 +204,7 @@ const BEPass = async () => {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "#0f172a",
+    backgroundColor: "#ffffffff",
   },
     title: {
     fontSize: 18,
