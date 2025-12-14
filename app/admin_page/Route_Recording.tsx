@@ -312,7 +312,7 @@ const saveGPXToFile = async (gpxString: string): Promise<string> => {
     const fileUri = await saveGPXToFile(generatedGPX);
     setGeneratedFileUri(fileUri);
 
-    console.log("⬆️ Uploading GPX:", generatedFileUri);
+    console.log("⬆️ Uploading GPX:", fileUri);
 
         const form = new FormData();
         // Add the META DATA file id and Route name

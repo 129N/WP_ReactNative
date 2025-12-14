@@ -36,9 +36,8 @@ export default function Participant(){
                 {/* Create Map, Detail input */}
                 <TouchableOpacity
                   style={[styles.button, { backgroundColor: '#10B981' }]} // green
-                  onPress={() => router.push('../Authentication/Login')}>
-                  <Text style={styles.buttonText}>View Map </Text> 
-                  <Text style={styles.buttonText}>View Map </Text> 
+                  onPress={() => router.push('/admin_page/Admin_Map/GpxFileList')}>
+                  <Text style={styles.buttonText}>View Files </Text> 
                 </TouchableOpacity>
 
 

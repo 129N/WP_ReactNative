@@ -25,7 +25,7 @@ type TrackPoint = {
 
 //export const BASE_URL = 'http://192.168.0.103:8001/api';
 //the URL is made throught the ngrok function 'https://abc123.ngrok.io/api';
-export const BASE_URL = 'https://c4337e5cd7f8.ngrok-free.app/api';
+export const BASE_URL = 'https://6e495f2c0985.ngrok-free.app/api';
 
 const GPXLoader = () => {
 
@@ -93,8 +93,6 @@ const GPXLoader = () => {
       setTrackPoints(parsedTrackPoints);
     setRawTrackPoints(allTrackPointsRaw); 
 
-
-
         if (parsedWaypoints.length > 0) {
           const firstWaypoint = parsedWaypoints[0];
       
@@ -110,26 +108,6 @@ const GPXLoader = () => {
       alert('Error picking the file. Please try again.');
     }
   };
-
-
-
-
-   //  const gpxText = await fetch(fileUri).then(res => res.text());
-
-        //   const parser = new XMLParser({
-        //               ignoreAttributes: false,
-        //               ignoreDeclaration: true,
-        //               ignorePiTags: true,
-        //           });
-
-        // const parsedData = parser.parse(gpxText);
-
-        // const waypoints = parsedData?.gpx?.wpt || [];
-
-        // if (!waypoints.length) {
-        //             alert('No waypoints found in the GPX file.');
-        //             return;
-        //         }
 
   const BEPass = async () => {
     try{
