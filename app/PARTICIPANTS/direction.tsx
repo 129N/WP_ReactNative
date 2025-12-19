@@ -13,6 +13,17 @@ import Svg, { Circle, Line } from "react-native-svg";
 import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
 
+import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { useRouter } from "expo-router";
+type RootStackParamList = {
+  Direction: undefined;
+  EmergencyChat: {
+    event_code: string;
+    participant_id: number;
+  };
+};
+
+type Props = NativeStackScreenProps<RootStackParamList, "Direction">;
 
 // ---- Background location task (same idea as in Allmighty) ----
 
@@ -35,7 +46,7 @@ import getBearing from "../comp/GPXfunction";
     }
   });
 
-  const DirectionScreen = () => {
+  const DirectionScreen = async ({navigation} : Props ) => {
   const [waypoints, setWaypoints] = useState<Waypoint[]>([]);
   const [trackPoints, setTrackPoints] = useState<TrackPoint[]>([]);
   const [nextIndex, setNextIndex] = useState(0);
@@ -54,6 +65,8 @@ import getBearing from "../comp/GPXfunction";
     null
   );
   const [fileUri, setFileUri] = useState<string | null>(null);
+
+const router = useRouter();
 
  // Small helper like in your notes
   const getNextWaypoint = () => waypoints[nextIndex];
@@ -332,7 +345,8 @@ useEffect(() => {
 
     } 
 
-    const sendNotification = async (type: "emergency" | "surrender", message: string) => {
+    const sendNotification = async (type: "emergency" | "surrender", message: string, participant_id: number) => {
+      
       try {
         const token = await AsyncStorage.getItem("authToken");
         const userId = await AsyncStorage.getItem("userId");
@@ -343,7 +357,7 @@ useEffect(() => {
           return;
         }
 
-      const res = await fetch(`${BASE_URL}/events/${event_code}/notifications`,
+      const res = await fetch (`${BASE_URL}/events/${event_code}/notifications`,
       {
         method: "POST",
         headers: {
@@ -356,21 +370,75 @@ useEffect(() => {
           message,
         }),
       }
+
     );
 
+    
     if (!res.ok) {
       const text = await res.text();
       console.error("Notification error:", text);
       alert("Failed to send notification");
       return;
     }
-  console.log("Sending type:", type);
-    Alert.alert(`${type} has been sent to admin!!`);
-    console.log(`✅ ${type} notification sent`);
+
+      console.log("Sending type:", type);
+      console.log(`✅ ${type} notification sent`);
+    if(type == "emergency") {
+      const Eres = await fetch(`${BASE_URL}/event/${event_code}/emergency/${participant_id}/create`, {
+        method: "POST", 
+        headers:{
+            Authorization:`Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+      });
+      if(!Eres.ok) {throw new Error("Failed to fetch")};
+
+     const roomId = `event:${event_code}:participant:${participant_id}`;
+
+      console.log("Joining emergency room:", roomId);
+       router.push
+      ({
+        pathname: "/PARTICIPANTS/EmergencyChat",
+        params: {
+          event_code,
+          participant_id: userId,
+        },
+      });
+
+
+    }
+
+
+    // Alert.alert(`${type} has been sent to admin!!`);
+    
   } catch (err) {
     console.error("sendNotification error:", err);
     alert("Notification failed");
   }
+};
+
+const handleHelpPress = async() => {
+  const userId =  await AsyncStorage.getItem("userId");
+  const event_code = await AsyncStorage.getItem("event_code");
+
+    if (!userId || !event_code) {
+    Alert.alert("Missing user or event data");
+    return;
+  }
+
+  await sendNotification(
+    "emergency", "Participant requested EMERGENCY HELP assistance",
+     Number (userId),
+  );
+
+  router.push({
+    pathname: "/PARTICIPANTS/EmergencyChat",
+  params: {
+    event_code,
+    participant_id: userId,
+  },
+  });
+
 };
 
 useEffect(() => {
@@ -560,11 +628,8 @@ return (
 
     {/* BUTTONS */}
     <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}
-      onPress={() =>
-    sendNotification(
-      "emergency",
-      "Participant requested EMERGENCY HELP assistance"
-    )
+      onPress={
+    handleHelpPress
   }
     >
       <MaterialCommunityIcons name="alert-circle-outline" size={20} color="white" />
@@ -572,12 +637,7 @@ return (
     </TouchableOpacity>
 
     <TouchableOpacity style={[styles.button, { backgroundColor: '#6B7280' }]}
-    onPress={() =>
-    sendNotification(
-      "surrender",
-      "Participant requested SURRENDER"
-    )
-  }
+    onPress={ handleHelpPress}
     >
       <MaterialCommunityIcons name="exit-run" size={20} color="white" />
       <Text style={styles.buttonText}>Surrender</Text>

@@ -40,6 +40,8 @@ const styles = StyleSheet.create({
     },
   });
   return (
+
+ 
     <AuthProvider>
       <View style={styles.container}>
         {/* Global header area */}
@@ -52,8 +54,11 @@ const styles = StyleSheet.create({
 
         {/* Screen content */}
         <Slot />
+
       </View>
     </AuthProvider>
+
+
   );
   
 }
