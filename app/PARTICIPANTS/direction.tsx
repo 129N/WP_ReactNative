@@ -8,7 +8,7 @@ import * as Location from "expo-location";
 import type { TaskManagerError } from 'expo-task-manager';
 import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
@@ -131,12 +131,12 @@ useEffect(() => {
       alert("GPS permission not granted.");
       return;
     }
-
+//LOCATION Update
     subscriber = await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.High,
         distanceInterval: 1,    // 1m movement updates
-        timeInterval: 2000,     // update every 2 sec
+        timeInterval: 3000,     // update every 3 sec
       },
       (loc) => {
         const coords = {
@@ -156,8 +156,6 @@ useEffect(() => {
     if (subscriber) subscriber.remove();
   };
 }, []);
-
-
 
 // === 4) Visible segment of route near the runner (like your Allmighty logic) ===
 useEffect(() => {
@@ -367,7 +365,7 @@ useEffect(() => {
       return;
     }
   console.log("Sending type:", type);
-
+    Alert.alert(`${type} has been sent to admin!!`);
     console.log(`✅ ${type} notification sent`);
   } catch (err) {
     console.error("sendNotification error:", err);
@@ -375,6 +373,38 @@ useEffect(() => {
   }
 };
 
+useEffect(() => {
+  if (!currentPosition) return;
+  sendLiveLocation(currentPosition);
+}, [currentPosition]);
+
+
+const sendLiveLocation = async (position: Position) => {
+  try {
+    const token = await AsyncStorage.getItem("authToken");
+    const userId = await AsyncStorage.getItem("userId");
+    const event_code = await AsyncStorage.getItem("event_code");
+
+    if (!token || !userId || !event_code) return;
+
+    await fetch(`${BASE_URL}/events/${event_code}/location`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        user_id: Number(userId),
+        lat: position.latitude,
+        lon: position.longitude,
+        speed: null,
+        heading: null,
+      }),
+    });
+  } catch (err) {
+    console.error("GPS upload failed:", err);
+  }
+};
 
 return (
     <View style={styles.container}>
@@ -403,10 +433,7 @@ return (
       </TouchableOpacity>
     </View>
 
-
-
  {/* Distance / ETA */}
-
 
     <Text>Bearing: {bearing ? bearing.toFixed(1) : '---'}°</Text>
     <Text>Distance: {distanceToNext ? distanceToNext.toFixed(2) : '---'} km</Text>
@@ -556,8 +583,6 @@ return (
       <Text style={styles.buttonText}>Surrender</Text>
     </TouchableOpacity>
 
-
-
       <View style={styles.miniMapContainer}>
         <Text style={styles.miniMapTitle}>Route Overview</Text>
         {routeElements ?? (
@@ -649,43 +674,4 @@ toggleContainer : {
   },
 
 });
-
-
-
-
-
-//INITIAL STATE
-// useEffect(() => {
-//   updatePosition();
-// }, []);
-
-// const updatePosition = () => {
-//   setCurrentPosition({
-//     latitude: 46.928,
-//     longitude: 17.867,
-//   });
-// };
-
-
-
-
-
-// bearing calculation
-// useEffect(() => {
-//   if(!currentPosition || waypoints.length === 0 ) return;
-  
-//   const next = waypoints[nextIndex];
-//   const brng = getBearing(
-//     currentPosition.latitude,
-//     currentPosition.longitude,
-//     next.latitude,
-//     next.longitude
-//   );
-
-//   setBearing(brng);
-
-// }, [currentPosition, nextIndex, waypoints]);
-
-
-
 
