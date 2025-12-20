@@ -3,7 +3,7 @@ import { useLocalSearchParams } from "expo-router";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js/react-native";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View, } from "react-native";
+import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { BASE_URL } from "../admin_page/newfileloader";
 
 
@@ -26,7 +26,6 @@ type ChatMessage = {
   lon?: number;
 };
 
-(global as any).Pusher = Pusher;
 
 export default function EmergencyChat() {
 
@@ -46,15 +45,19 @@ const [loading, setLoading] = useState(true);
         const initEcho = async() => {
 
             try{
+                
                 const token = await AsyncStorage.getItem("authToken");
-        
+        const pid = Number(participant_id);
+
                 echo = new Echo({
-                    broadcaster: "reverb",
+                    broadcaster: "pusher",
                     key: "local",
-                    wsHost: "YOUR_SERVER_IP",
+                    cluster:"mt1",
+                    wsHost: "192.168.0.103",
                     wsPort: 8080,
                     forceTLS: false,
                     encrypted: false,
+                    Pusher: Pusher,
                     authEndpoint: `${BASE_URL}/broadcasting/auth`,
                     auth: {
                         headers: {
@@ -63,9 +66,14 @@ const [loading, setLoading] = useState(true);
                         },
                     });
 
-                const channel = `emergency.event.${event_code}.participant.${participant_id}`;
+console.log("📡 Connecting to Reverb at", "192.168.0.103:8080");
 
-                echo.private(channel).listen(".emergency.message", (e: any) => {
+                const channel = `emergency.event.${event_code}.participant.${pid}`;
+console.log("📡 Subscribing to", channel);
+
+                echo.private(channel)
+                .listen(".emergency.message", (e: any) => {
+                    console.log("🔥 RECEIVED:", e);
                     setMessages(prev => [...prev, e.payload]);
                 });
                 setLoading(false);
@@ -90,7 +98,7 @@ const sendMessage = async() => {
     if (!trimmed) return;
 
   try{
-
+console.log(trimmed);
     const token = await AsyncStorage.getItem("authToken");
     if(!token){
         Alert.alert("Authentication missing");
@@ -108,7 +116,7 @@ const sendMessage = async() => {
     if(!res.ok) {throw new Error("Failed to send message");}
 
     setInputs("");
-
+console.log("Message is fine");
   }
   catch(err){
     console.error("sendMessage error:", err);
@@ -129,6 +137,8 @@ const sendMessage = async() => {
 
     return (
     <View style={styles.container}>
+
+        <Text>Emergency Chat  </Text>
         {messages.map((m, i) => (
         <Text key={i} style={styles.msg}>
             {m.message}
@@ -142,7 +152,10 @@ const sendMessage = async() => {
         style={styles.input}
         />
 
-        <Button title="Send" onPress={() => {sendMessage}}  disabled = {loading}/>
+        <TouchableOpacity
+         onPress={sendMessage}  disabled = {loading}  style={[styles.button, { backgroundColor: "#DC2626" }]}>
+            <Text style={styles.buttonText}>SEND</Text>
+        </TouchableOpacity>
     </View>
     );
 
@@ -170,5 +183,7 @@ loadingText: {
   fontSize: 16,
   color: "#6B7280",
 },
+button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
+buttonText: { color: 'white', marginLeft: 150, fontWeight: 'bold' },
 
 });
