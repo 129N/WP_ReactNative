@@ -3,10 +3,9 @@ import { Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 //Icon 
 import { iconSize_dimension } from '@/constants/dimensions';
 import { Ionicons } from '@expo/vector-icons';
+import { Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 
-const pages = ['Products', 'Pricing', 'Blog'];
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 
 export default function Responsive() {
 const [navMenuOpen, setnavMenuOpen] = useState(false);
@@ -19,6 +18,27 @@ const handleCloseUserIcon = () => setUserIconOpen(false);
   // Open the icon's property 
   const handleOpenNavMenu = () => setnavMenuOpen(true);
   const handleOpenSettng = () => setUserIconOpen(true);
+
+  const router = useRouter();
+
+  const pages: {label: string, route: Href}[] = [
+  { label: 'Products', route: '/' },
+  { label: 'Pricing', route: '/' },
+  { label: 'Blog', route: '/' },
+  ];
+
+const settings: ({ label: string; route: Href })[] = [
+  { label: 'Profile', route: '/Authentication/ProfileScreen' },
+  { label: 'Account', route: '/Authentication/registration' },
+  { label: 'Dashboard', route: '/' },
+
+];
+
+const handleNavigate = (route: Href) => {
+  setnavMenuOpen(false);
+  setUserIconOpen(false);
+  router.push(route);
+};
 
   return (
     <View style={styles.Container} >
@@ -42,8 +62,8 @@ const handleCloseUserIcon = () => setUserIconOpen(false);
                                         {/* () => setnavMenuOpen(false) */}
           <View style={styles.menu}>
             {pages.map((p, i) => (
-              <TouchableOpacity key={i} onPress={() => console.log('Pressed', p)}>
-                <Text style={styles.menuItem}>{p}</Text>
+              <TouchableOpacity key={i} onPress={() => handleNavigate(p.route)}>
+                <Text style={styles.menuItem}>{p.label}</Text>
               </TouchableOpacity>
             ))}
             
@@ -53,17 +73,31 @@ const handleCloseUserIcon = () => setUserIconOpen(false);
 
 
       <Modal visible={userIconOpen} transparent animationType='fade'>
-        <TouchableOpacity style={styles.overlay} onPress={handleCloseUserIcon}> 
-                                          {/* () => setUserIconOpen(false) */}
-          <View style={styles.menu}>
-            {settings.map((s, i) => (
-              <TouchableOpacity key={i} onPress={() => console.log('Pressed', s)}>
-                <Text style={styles.menuItem}>{s}</Text>
-              </TouchableOpacity>
-            ))}
+        <View style={styles.overlay}>
 
-          </View>
-        </TouchableOpacity>
+        {/* button click */}
+          <TouchableOpacity  onPress={handleCloseUserIcon}> 
+        {/* menu */}
+            <View style={styles.menu}>
+              {settings.map((s, i) => (
+                <TouchableOpacity key={i}   onPress={() => {
+            console.log('Pressed', s);
+
+            if ('action' in s && s.action === 'logout') {
+              setUserIconOpen(false);
+              router.replace('/'); // or '/login'
+            } else {
+              handleNavigate(s.route);
+            }
+          }}>
+                  <Text style={styles.menuItem}>{s.label}</Text>
+                </TouchableOpacity>
+              ))}
+
+            </View>
+          </TouchableOpacity>
+        </View>
+
 
       </Modal>
 
