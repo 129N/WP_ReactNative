@@ -8,7 +8,7 @@ import * as Location from "expo-location";
 import type { TaskManagerError } from 'expo-task-manager';
 import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
@@ -475,7 +475,10 @@ const sendLiveLocation = async (position: Position) => {
 };
 
 return (
-    <View style={styles.container}>
+    <ScrollView style={{ flex: 1, backgroundColor: "#fff" }}
+    contentContainerStyle={styles.container}
+    showsVerticalScrollIndicator={false}>
+
       {/* Toggle Buttons */}
     <View style={styles.toggleContainer}>
       <TouchableOpacity
@@ -533,7 +536,22 @@ return (
       <>
 
         <Text style={styles.title}>🔵 Track Point Mode</Text>
+ {/* Direction Arrow (same as waypoint mode) */}
 
+    {bearing !== null && (
+      <View style={styles.arrowContainer}>
+        <Ionicons
+          name="arrow-up-outline"
+          size={40}
+          color="blue"
+          style={{ transform: [{ rotate: `${bearing}deg` }] }}
+        />
+        <Text>Bearing: {bearing.toFixed(1)}°</Text>
+        <Text style={{ textAlign: 'center' }}>
+          Direction to Next Waypoint
+        </Text>
+      </View>
+    )}
         {Array.isArray(visibleTrackPoints) && visibleTrackPoints.length > 1 && (
           (() => {
 
@@ -561,9 +579,25 @@ return (
             const xOffset = (svgWidth - lonRange * scale) / 2;
             const yOffset = (svgHeight - latRange * scale) / 2;
 
+            // Anchor the current (nearest) trackpoint at the bottom
+const anchorLat = visibleTrackPoints[0].latitude;
+
+
             const project = (lat: number, lon: number) => {
-              const x = xOffset + (lon - minLon) * scale;
-              const y = svgHeight - (yOffset + (lat - minLat) * scale);
+              // const x = xOffset + (lon - minLon) * scale;
+              // const y = svgHeight - (yOffset + (lat - minLat) * scale);
+
+              // const y = svgHeight - padding - ((lat - minLat) / latRange) * (svgHeight - padding * 2);
+             // const y = padding + ((maxLat - lat) / latRange) * (svgHeight - padding * 2);
+ const t = (lat - minLat) / latRange;
+
+ const y =
+    svgHeight -
+    padding -
+    ((lat - anchorLat) / latRange) * (svgHeight - padding * 2);
+
+  // Strong vertical bias: keep x near center
+              const x = svgWidth / 2 + ((lon - (minLon + maxLon) / 2) / lonRange) * 40; // <- horizontal compression
               return { x, y };
             };
 
@@ -576,7 +610,7 @@ return (
                   const curr = project(tp.latitude, tp.longitude);
                   const prev = project(
                     visibleTrackPoints[index - 1].latitude,
-                    visibleTrackPoints[index - 1].longitude
+                    visibleTrackPoints[index - 1].longitude,
                   );
                   return (
                     <Line
@@ -649,7 +683,10 @@ return (
           <Text style={styles.infoText}>Route not loaded.</Text>
         )}
       </View>
-    </View>
+
+    </ScrollView>
+
+
   );
     
   };
@@ -657,13 +694,14 @@ return (
 export default DirectionScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    padding: 20,
-    flex: 1,
-    backgroundColor: "#ffffffff",
-    justifyContent: "flex-start",
-    alignItems: "center",
-  },
+container: {
+  padding: 20,
+  justifyContent: "flex-start",
+  alignItems: "center",
+
+  /* 🔽 THIS is the key */
+  paddingBottom: 60, // or 80 if you have buttons at the bottom
+},
   title: {
     fontSize: 20,
     fontWeight: "700",

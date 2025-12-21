@@ -3,7 +3,8 @@ import { useLocalSearchParams } from "expo-router";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js/react-native";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { BASE_URL } from "../admin_page/newfileloader";
 
 
@@ -135,28 +136,58 @@ console.log("Message is fine");
   );
 }
 
-    return (
-    <View style={styles.container}>
+  return (
 
-        <Text>Emergency Chat  </Text>
-        {messages.map((m, i) => (
-        <Text key={i} style={styles.msg}>
-            {m.message}
-        </Text>
-        ))}
+  <SafeAreaView style={styles.safe}> 
 
-        <TextInput
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+    <Text style={styles.title}>🚨 Emergency Chat</Text>
+{/* Message List  */}
+      {/* {messages.map((m, i) => (
+      <Text key={i} style={styles.msg}>
+          {m.message}
+      </Text>
+      ))} */}
+
+    <FlatList
+      data={messages}
+      keyExtractor={(_, i) => i.toString()}
+      contentContainerStyle={styles.chatArea}
+      renderItem={({ item }) => (
+      <View style={styles.msgBubble}>
+        <Text style={styles.msgText}>{item.message}</Text>
+      </View>
+    )}
+    />
+{/* Input bar */}
+  <View style={styles.inputBar}>
+      <TextInput
         value={input}
         onChangeText={setInputs}
         placeholder="Type message..."
         style={styles.input}
-        />
+        multiline
+      />
 
-        <TouchableOpacity
-         onPress={sendMessage}  disabled = {loading}  style={[styles.button, { backgroundColor: "#DC2626" }]}>
-            <Text style={styles.buttonText}>SEND</Text>
-        </TouchableOpacity>
-    </View>
+      <TouchableOpacity
+        onPress={sendMessage}
+        disabled={loading}
+        style={[
+          styles.sendButton,
+          loading && { opacity: 0.5 },
+        ]}
+      >
+        <Text style={styles.sendText}>SEND</Text>
+      </TouchableOpacity>
+  </View>
+
+    </KeyboardAvoidingView>
+
+  </SafeAreaView>
+   
     );
 
 };
@@ -165,14 +196,7 @@ console.log("Message is fine");
 /* ---------------- STYLES ---------------- */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
   msg: { paddingVertical: 4 },
-  input: {
-    borderWidth: 1,
-    padding: 8,
-    marginVertical: 8,
-    borderRadius: 6,
-  },
   loadingContainer: {
   flex: 1,
   justifyContent: "center",
@@ -185,5 +209,65 @@ loadingText: {
 },
 button: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 8 },
 buttonText: { color: 'white', marginLeft: 150, fontWeight: 'bold' },
+  safe: {
+    flex: 1,
+    backgroundColor: "#F9FAFB",
+  },
+  container: {
+    flex: 1,
+    paddingHorizontal: 12,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "700",
+    textAlign: "center",
+    marginVertical: 8,
+  },
 
+  /* Chat area */
+  chatArea: {
+    paddingVertical: 8,
+  },
+  msgBubble: {
+    alignSelf: "flex-start",
+    backgroundColor: "#E5E7EB",
+    padding: 10,
+    borderRadius: 12,
+    marginVertical: 4,
+    maxWidth: "80%",
+  },
+  msgText: {
+    fontSize: 15,
+    color: "#111827",
+  },
+
+  /* Input bar */
+  inputBar: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  input: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    marginRight: 8,
+    backgroundColor: "#FFFFFF",
+    maxHeight: 120,
+  },
+  sendButton: {
+    backgroundColor: "#DC2626",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  sendText: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
 });

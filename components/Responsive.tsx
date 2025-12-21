@@ -22,7 +22,7 @@ const handleCloseUserIcon = () => setUserIconOpen(false);
   const router = useRouter();
 
   const pages: {label: string, route: Href}[] = [
-  { label: 'Products', route: '/' },
+  { label: 'Event', route: '/comp/Event_Registration' },
   { label: 'Pricing', route: '/' },
   { label: 'Blog', route: '/' },
   ];
