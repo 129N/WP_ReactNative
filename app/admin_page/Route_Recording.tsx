@@ -16,8 +16,11 @@ import * as Location from "expo-location";
 import { useRouter } from "expo-router";
 import getDistance from "geolib/es/getPreciseDistance";
 import { useEffect, useRef, useState } from "react";
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, Animated, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Magnetometer } from "expo-sensors";
 import { BASE_URL } from "./newfileloader";
 
     const LOCATION_TASK = "ROUTE_RECORDING_TASK";
@@ -55,12 +58,44 @@ const [fileId, setFileId] = useState<number | null>(null);
 const [GpxReady, setGpxReady] = useState(false);
 const [FileID, setUploadedFileId] = useState();
 
+//Gyroscope 
+const [heading, setHeading] = useState<number | null>(null);
+const magnetometerSub = useRef<any>(null);
+
 // Ture False appear button
     const [active, setActive] = useState(false);
 
     useEffect(()=>{
         return () => {stopGpsWatcher();};
     }, []);
+
+
+
+// ---------------------------
+// GYROSCOPE CALUCLATION FUNCTIONS
+// ---------------------------
+
+const calculateHeading = (data: { x: number; y: number; z: number }) => {
+  let angle = Math.atan2(data.y, data.x) * (180 / Math.PI);
+  angle = angle >= 0 ? angle : angle + 360;
+  return angle;
+};
+
+const rotation = useRef(new Animated.Value(0)).current;
+useEffect(() => {
+  if(heading == null) return;
+
+  Animated.timing(rotation, {
+    toValue: heading,
+    duration: 80,
+    useNativeDriver: true,
+  }).start();
+}, [heading]);
+
+const rotateInterpolate = rotation.interpolate({
+  inputRange: [0, 360],
+  outputRange: ["0deg", "360deg"],
+});
 
 // ---------------------------
 // STATE MACHINE FUNCTIONS
@@ -83,6 +118,11 @@ const [FileID, setUploadedFileId] = useState();
     setRecordingState(RecordingStates.Recording);
 
     startGPSWatcher();
+
+    magnetometerSub.current = Magnetometer.addListener((data) => {
+      const angle = calculateHeading(data);
+      setHeading(Math.round(angle));
+    });
   };
 
   const pauseRecording = async() => {
@@ -117,6 +157,12 @@ const [FileID, setUploadedFileId] = useState();
         gpsWatcherRef.current?.remove();
         gpsWatcherRef.current = null;
     }
+
+    if (magnetometerSub.current) {
+      magnetometerSub.current.remove();
+      magnetometerSub.current = null;
+    }
+
   };
 
 // add waypoints manually
@@ -130,6 +176,7 @@ const [FileID, setUploadedFileId] = useState();
             lat: currentPosition.latitude,
             lon: currentPosition.longitude,
             time: new Date().toISOString(),
+            heading: heading,
             name: `WP ${waypoints.length + 1}`
         };
          
@@ -387,6 +434,19 @@ const saveGPXToFile = async (gpxString: string): Promise<string> => {
                     🚀 Speed: {(lastLocation.speed * 3.6 || 0).toFixed(1)} km/h
                 </Text>
             )}
+  {/* gyro rotation arrow  */}
+
+  {/* Heading / Compass UI */}
+<View style={styles.headingBox}>
+  <Animated.View style={{ transform: [{ rotate: rotateInterpolate }] }}>
+    <MaterialCommunityIcons name="arrow-up-bold" size={60} color="#111" />
+  </Animated.View>
+  <Text style={styles.headingText}>
+    Heading: {heading == null ? "--" : `${heading}°`}
+  </Text>
+</View>
+
+    
     {/* Button Section */}
           <TouchableOpacity style={styles.btnPause} onPress={pauseRecording}>
             <Text style={styles.btnText}>Pause</Text>
@@ -474,6 +534,7 @@ const saveGPXToFile = async (gpxString: string): Promise<string> => {
         </View>
       )}
 
+
     </View>
   );
   
@@ -496,7 +557,22 @@ const styles = StyleSheet.create({
   btnUpload: { padding: 15, backgroundColor: "#000cf4ff", marginVertical: 10, borderRadius: 8 },
   btnGenerate:{ padding: 15, backgroundColor: "#00a3f4ff", marginVertical: 10, borderRadius: 8 },
   btnReset: { padding: 15, backgroundColor: "#ffffffff", marginVertical: 10, borderRadius: 8 },
-  btnText: { textAlign: "center", color: "white", fontWeight: "bold" }
+  btnText: { textAlign: "center", color: "white", fontWeight: "bold" },
+  headingBox: {
+  alignItems: "center",
+  justifyContent: "center",
+  paddingVertical: 12,
+  marginBottom: 12,
+  borderRadius: 10,
+  backgroundColor: "#E5E7EB",
+},
+headingText: {
+  marginTop: 8,
+  fontSize: 16,
+  fontWeight: "600",
+  color: "#111",
+},
+
 });
 
 export default VRouteRecording;
