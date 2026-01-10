@@ -15,6 +15,8 @@ import getBearing from "../comp/GPXfunction";
 
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { useRouter } from "expo-router";
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from "react-native-maps";
+
 type RootStackParamList = {
   Direction: undefined;
   EmergencyChat: {
@@ -22,6 +24,10 @@ type RootStackParamList = {
     participant_id: number;
   };
 };
+
+
+// MAP Optimization 
+
 
 type Props = NativeStackScreenProps<RootStackParamList, "Direction">;
 
@@ -64,7 +70,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Direction">;
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(
     null
   );
-  const [fileUri, setFileUri] = useState<string | null>(null);
+
 
 const router = useRouter();
 
@@ -188,7 +194,7 @@ useEffect(() => {
     }
   }
 
-  const upcoming = trackPoints.slice(nearestIndex, nearestIndex + 5);
+  const upcoming = trackPoints.slice(nearestIndex, nearestIndex + 15);
   setVisibleTrackPoints(upcoming);
 }, [currentPosition, trackPoints]);
 
@@ -504,7 +510,7 @@ return (
       </TouchableOpacity>
     </View>
 
- {/* Distance / ETA */}
+{/* Distance / ETA */}
 
     <Text>Bearing: {bearing ? bearing.toFixed(1) : '---'}°</Text>
     <Text>Distance: {distanceToNext ? distanceToNext.toFixed(2) : '---'} km</Text>
@@ -554,34 +560,48 @@ return (
     )}
         {Array.isArray(visibleTrackPoints) && visibleTrackPoints.length > 1 && (
           (() => {
+ // Choose a safe center (prefer currentPosition, fallback to first TP)
+            const lineCoords = visibleTrackPoints.map(tp => ({
+              latitude: Number(tp.latitude),
+              longitude: Number(tp.longitude),
+            }));
+ // Choose a safe center (prefer currentPosition, fallback to first TP)
+            const center = currentPosition ? {latitude: currentPosition.latitude, longitude: currentPosition.longitude} : lineCoords[0];
 
-            const svgWidth = 360;
-            const svgHeight = 400;
 
-            const lats = visibleTrackPoints.map(tp => tp.latitude);
-            const lons = visibleTrackPoints.map(tp => tp.longitude);
+ // Replace the visibleTrackPoints with lineCoords
+        const lats = lineCoords.map(tp => tp.latitude);
+        const lons = lineCoords.map(tp => tp.longitude);
 
             const minLat = Math.min(...lats);
             const maxLat = Math.max(...lats);
             const minLon = Math.min(...lons);
             const maxLon = Math.max(...lons);
 
+            
+    const latDelta = Math.max((maxLat - minLat) * 2.0, 0.002); // minimum zoom window
+    const lonDelta = Math.max((maxLon - minLon) * 2.0, 0.002);
+
+            const svgWidth = 360;
+            const svgHeight = 400;
+
             const padding = 30;
 
             const lonRange = maxLon - minLon || 1e-6;
             const latRange = maxLat - minLat || 1e-6;
 
-            const scale = Math.min(
-              (svgWidth - padding * 2) / lonRange,
-              (svgHeight - padding * 2) / latRange
-            );
+            const region = {
+              latitude: center.latitude,
+              longitude: center.longitude,
+              latitudeDelta: latDelta,
+              longitudeDelta: lonDelta,
+            };
 
-            const xOffset = (svgWidth - lonRange * scale) / 2;
-            const yOffset = (svgHeight - latRange * scale) / 2;
+            // const xOffset = (svgWidth - lonRange * scale) / 2;
+            // const yOffset = (svgHeight - latRange * scale) / 2;
 
             // Anchor the current (nearest) trackpoint at the bottom
-const anchorLat = visibleTrackPoints[0].latitude;
-
+            const anchorLat = visibleTrackPoints[0].latitude;
 
             const project = (lat: number, lon: number) => {
               // const x = xOffset + (lon - minLon) * scale;
@@ -589,7 +609,7 @@ const anchorLat = visibleTrackPoints[0].latitude;
 
               // const y = svgHeight - padding - ((lat - minLat) / latRange) * (svgHeight - padding * 2);
              // const y = padding + ((maxLat - lat) / latRange) * (svgHeight - padding * 2);
- const t = (lat - minLat) / latRange;
+              //const t = (lat - minLat) / latRange;
 
  const y =
     svgHeight -
@@ -601,58 +621,122 @@ const anchorLat = visibleTrackPoints[0].latitude;
               return { x, y };
             };
 
-            return (
-              <Svg height={svgHeight} width={svgWidth}>
+            // return (
+            //   <Svg height={svgHeight} width={svgWidth}>
 
-                {/* ROUTE LINES */}
-                {visibleTrackPoints.map((tp, index) => {
-                  if (index === 0) return null;
-                  const curr = project(tp.latitude, tp.longitude);
-                  const prev = project(
-                    visibleTrackPoints[index - 1].latitude,
-                    visibleTrackPoints[index - 1].longitude,
-                  );
-                  return (
-                    <Line
-                      key={`line-${index}`}
-                      x1={prev.x}
-                      y1={prev.y}
-                      x2={curr.x}
-                      y2={curr.y}
-                      stroke="#1E90FF"
-                      strokeWidth={3}
-                    />
-                  );
-                })}
+            //     {/* ROUTE LINES */}
+            //     {visibleTrackPoints.map((tp, index) => {
+            //       if (index === 0) return null;
+            //       const curr = project(tp.latitude, tp.longitude);
+            //       const prev = project(
+            //         visibleTrackPoints[index - 1].latitude,
+            //         visibleTrackPoints[index - 1].longitude,
+            //       );
+            //       return (
+            //         <Line
+            //           key={`line-${index}`}
+            //           x1={prev.x}
+            //           y1={prev.y}
+            //           x2={curr.x}
+            //           y2={curr.y}
+            //           stroke="#1E90FF"
+            //           strokeWidth={3}
+            //         />
+            //       );
+            //     })}
 
-                {/* BLUE DOTS */}
-                {visibleTrackPoints.map((tp, idx) => {
-                  const p = project(tp.latitude, tp.longitude);
-                  return (
-                    <Circle
-                      key={`tp-${idx}`}
-                      cx={p.x}
-                      cy={p.y}
-                      r={4}
-                      fill="#1E90FF"
-                    />
-                  );
-                })}
+            //     {/* BLUE DOTS */}
+            //     {visibleTrackPoints.map((tp, idx) => {
+            //       const p = project(tp.latitude, tp.longitude);
+            //       return (
+            //         <Circle
+            //           key={`tp-${idx}`}
+            //           cx={p.x}
+            //           cy={p.y}
+            //           r={4}
+            //           fill="#1E90FF"
+            //         />
+            //       );
+            //     })}
 
-                {/* RED USER DOT */}
-                {currentPosition && (() => {
-                  return (
-                    <Circle
-                      cx={svgWidth / 2}
-                      cy={svgHeight - 10}
-                      r={6}
-                      fill="red"
-                    />
-                  );
-                })()}
+            //     {/* RED USER DOT */}
+            //     {currentPosition && (() => {
+            //       return (
+            //         <Circle
+            //           cx={svgWidth / 2}
+            //           cy={svgHeight - 10}
+            //           r={6}
+            //           fill="red"
+            //         />
+            //       );
+            //     })()}
 
-              </Svg>
-            );
+            //   </Svg>
+            // );
+          
+          return(
+<View style={{ width: "100%", height: 420, marginTop: 10, borderRadius: 12, overflow: "hidden" }}>
+        <MapView
+          style={{ flex: 1 }}
+          region={region}
+          provider={PROVIDER_GOOGLE}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          rotateEnabled={false}
+          pitchEnabled={false}
+          toolbarEnabled={false}
+          showsCompass={false}
+        >
+          {/* Route line (blue) */}
+          <Polyline
+            coordinates={lineCoords}
+            strokeColor="#1E90FF"
+            strokeWidth={4}
+          />
+
+          {/* Blue dots (optional but matches your current design) */}
+          {lineCoords.map((p, idx) => (
+            <Marker
+              key={`tp-${idx}`}
+              coordinate={p}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={{
+                  width: 8,
+                  height: 8,
+                  borderRadius: 4,
+                  backgroundColor: "#1E90FF",
+                }}
+              />
+            </Marker>
+          ))}
+
+          {/* Red user dot */}
+          {currentPosition && (
+            <Marker
+              coordinate={{
+                latitude: currentPosition.latitude,
+                longitude: currentPosition.longitude,
+              }}
+              anchor={{ x: 0.5, y: 0.5 }}
+            >
+              <View
+                style={{
+                  width: 12,
+                  height: 12,
+                  borderRadius: 6,
+                  backgroundColor: "red",
+                  borderWidth: 2,
+                  borderColor: "white",
+                }}
+              />
+            </Marker>
+          )}
+        </MapView>
+      </View>
+          );
+          
           })()
         )}
 
