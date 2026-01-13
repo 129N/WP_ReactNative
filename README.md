@@ -48,3 +48,70 @@ Join our community of developers creating universal apps.
 
 - [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
 - [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+---
+
+## Appendix: GPX file support 🔧
+
+**What this covers:** how to activate the GPX loader, where to put GPX files, required dependencies, and commands to run the app.
+
+### Where the code lives
+- The bearing helper is in `app/comp/GPXfunction.ts` (used to compute bearings).
+- GPX upload / parsing UI lives in:
+  - `app/admin_page/gpx.tsx` (Load GPX File button and map view)
+  - `app/admin_page/newfileloader.tsx` (picker + backend upload)
+
+### Quick setup & commands ✅
+1. Install project dependencies:
+
+   ```bash
+   npm install
+   ```
+
+2. (Optional) Ensure native deps are installed (recommended via Expo):
+
+   ```bash
+   npx expo install expo-document-picker fast-xml-parser react-native-maps
+   ```
+
+3. Start the dev server:
+
+   ```bash
+   npx expo start
+   ```
+
+4. Run on Android (Windows):
+
+   ```bash
+   npm run android
+   ```
+
+5. Run on iOS (macOS only):
+
+   ```bash
+   npm run ios
+   ```
+
+### How to load a GPX file in the app
+- Open the app and navigate to the **Admin / GPX** screen.
+- Tap **Load GPX File** and select a `.gpx` file from your device.
+- The app parses the file (`fast-xml-parser`) and displays the track (Polyline) and waypoints on the map.
+- `GPXfunction.ts` is used by the UI to compute bearings to the next waypoint.
+
+### Pushing a GPX to an Android emulator/device
+- Push a file to the device (requires Android platform-tools / adb):
+
+   ```bash
+   adb push path/to/your-file.gpx /sdcard/Download/
+   ```
+
+- Then pick it from the Document Picker in the app.
+
+### Backend / upload notes ⚠️
+- `app/admin_page/newfileloader.tsx` defines a `BASE_URL` constant — set this to your backend (or a ngrok URL).
+- The admin screens POST GPX files to the backend (look for `/gpx-upload` or `/upload-gpx` in the code). Ensure your backend accepts `multipart/form-data` and returns valid JSON when required.
+
+### Helpful tips 💡
+- A sample GPX file is included at `assets/balaton.gpx` for quick testing.
+- If parsing fails, check the GPX file for validity and confirm `fast-xml-parser` can parse it.
+
+---

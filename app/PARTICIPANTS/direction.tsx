@@ -8,7 +8,7 @@ import * as Location from "expo-location";
 import type { TaskManagerError } from 'expo-task-manager';
 import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import Svg, { Circle, Line } from "react-native-svg";
 import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
@@ -70,6 +70,8 @@ type Props = NativeStackScreenProps<RootStackParamList, "Direction">;
   const [coordinates, setCoordinates] = useState<{ latitude: number; longitude: number } | null>(
     null
   );
+
+  const [showTrackpointMap, setShowTrackpointMap] = useState(false);
 
 
 const router = useRouter();
@@ -164,7 +166,7 @@ useEffect(() => {
         };
 
         console.log("📍 Foreground position:", coords);
-        setCurrentPosition(coords);    // <<<<<< ここが全ての中心
+        setCurrentPosition(coords);    //  ここが全ての中心
       }
     );
   };
@@ -558,6 +560,15 @@ return (
         </Text>
       </View>
     )}
+
+    {/* Toggle: Map background ON/OFF */}
+    <View style={styles.toggleRow}>
+      <Text style={styles.toggleLabel}>
+        Map background: {showTrackpointMap ? "ON" : "OFF"}
+      </Text>
+      <Switch value={showTrackpointMap} onValueChange={setShowTrackpointMap} />
+    </View>
+
         {Array.isArray(visibleTrackPoints) && visibleTrackPoints.length > 1 && (
           (() => {
  // Choose a safe center (prefer currentPosition, fallback to first TP)
@@ -582,13 +593,7 @@ return (
     const latDelta = Math.max((maxLat - minLat) * 2.0, 0.002); // minimum zoom window
     const lonDelta = Math.max((maxLon - minLon) * 2.0, 0.002);
 
-            const svgWidth = 360;
-            const svgHeight = 400;
 
-            const padding = 30;
-
-            const lonRange = maxLon - minLon || 1e-6;
-            const latRange = maxLat - minLat || 1e-6;
 
             const region = {
               latitude: center.latitude,
@@ -597,29 +602,11 @@ return (
               longitudeDelta: lonDelta,
             };
 
-            // const xOffset = (svgWidth - lonRange * scale) / 2;
-            // const yOffset = (svgHeight - latRange * scale) / 2;
 
             // Anchor the current (nearest) trackpoint at the bottom
-            const anchorLat = visibleTrackPoints[0].latitude;
+          
 
-            const project = (lat: number, lon: number) => {
-              // const x = xOffset + (lon - minLon) * scale;
-              // const y = svgHeight - (yOffset + (lat - minLat) * scale);
 
-              // const y = svgHeight - padding - ((lat - minLat) / latRange) * (svgHeight - padding * 2);
-             // const y = padding + ((maxLat - lat) / latRange) * (svgHeight - padding * 2);
-              //const t = (lat - minLat) / latRange;
-
- const y =
-    svgHeight -
-    padding -
-    ((lat - anchorLat) / latRange) * (svgHeight - padding * 2);
-
-  // Strong vertical bias: keep x near center
-              const x = svgWidth / 2 + ((lon - (minLon + maxLon) / 2) / lonRange) * 40; // <- horizontal compression
-              return { x, y };
-            };
 
             // return (
             //   <Svg height={svgHeight} width={svgWidth}>
@@ -674,7 +661,10 @@ return (
             //   </Svg>
             // );
           
-          return(
+
+      // ---------- A) Map background mode ----------
+if(showTrackpointMap)
+{return(
 <View style={{ width: "100%", height: 420, marginTop: 10, borderRadius: 12, overflow: "hidden" }}>
         <MapView
           style={{ flex: 1 }}
@@ -735,14 +725,80 @@ return (
           )}
         </MapView>
       </View>
-          );
+          );}
+
+ // ---------- B) No-map mode (SVG corridor view) ----------
+            const svgWidth = 360;
+            const svgHeight = 400;
+
+            const padding = 30;
+
+            const lonRange = maxLon - minLon || 1e-6;
+            const latRange = maxLat - minLat || 1e-6;
+
+              const anchorLat = visibleTrackPoints[0].latitude;
+
+            const project = (lat: number, lon: number) => {
+
+            const y = svgHeight - padding - ((lat - anchorLat) / latRange) * (svgHeight - padding * 2);
+
+  // Strong vertical bias: keep x near center
+              const x = svgWidth / 2 + ((lon - (minLon + maxLon) / 2) / lonRange) * 40; // <- horizontal compression
+              return { x, y };
+            };
+
+      return (
+        <Svg height={svgHeight} width={svgWidth}>
+          {/* ROUTE LINES */}
+          {lineCoords.map((p, index) => {
+            if (index === 0) return null;
+            const curr = project(p.latitude, p.longitude);
+            const prev = project(lineCoords[index - 1].latitude, lineCoords[index - 1].longitude);
+
+            return (
+              <Line
+                key={`line-${index}`}
+                x1={prev.x}
+                y1={prev.y}
+                x2={curr.x}
+                y2={curr.y}
+                stroke="#1E90FF"
+                strokeWidth={3}
+              />
+            );
+          })}
+
+          {/* BLUE DOTS */}
+          {lineCoords.map((p, idx) => {
+            const pt = project(p.latitude, p.longitude);
+            return (
+              <Circle
+                key={`tp-${idx}`}
+                cx={pt.x}
+                cy={pt.y}
+                r={4}
+                fill="#1E90FF"
+              />
+            );
+          })}
+
+          {/* RED USER DOT (fixed at bottom center) */}
+          {currentPosition && (
+            <Circle
+              cx={svgWidth / 2}
+              cy={svgHeight - 10}
+              r={6}
+              fill="red"
+            />
+          )}
+        </Svg>
+      );
           
           })()
         )}
 
       </>
     ) : null}
-
 
     {/* BUTTONS */}
     <TouchableOpacity style={[styles.button, { backgroundColor: '#DC2626' }]}
@@ -769,7 +825,6 @@ return (
       </View>
 
     </ScrollView>
-
 
   );
     
@@ -854,6 +909,18 @@ toggleContainer : {
     alignItems: 'center',
     marginTop: 30,
   },
+  toggleRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  paddingHorizontal: 12,
+  marginVertical: 8,
+},
+toggleLabel: {
+  fontSize: 14,
+  fontWeight: "600",
+},
 
 });
 

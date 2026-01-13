@@ -1,7 +1,4 @@
 
-
-
-
 export default function getBearing (lat1: number, lon1: number, lat2: number, lon2: number){
     const toRad = (deg: number) => deg * Math.PI / 180;
     const toDeg = (rad: number) => rad * 180 / Math.PI;
