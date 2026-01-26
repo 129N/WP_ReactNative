@@ -1,10 +1,9 @@
 import Participant from '@/app/participant';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 export default function TabTwoScreen() {
 
   return (
     <View style= {styles.container}>
-      <Text>Explore here</Text>
 
       <Participant/>
 

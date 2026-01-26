@@ -9,7 +9,7 @@ import type { TaskManagerError } from 'expo-task-manager';
 import * as TaskManager from 'expo-task-manager';
 import { getDistance } from "geolib";
 import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import Svg, { Circle, Line } from "react-native-svg";
+import Svg, { Circle, Line, Polygon } from "react-native-svg";
 import { BASE_URL } from "../admin_page/newfileloader";
 import getBearing from "../comp/GPXfunction";
 
@@ -739,58 +739,143 @@ if(showTrackpointMap)
               const anchorLat = visibleTrackPoints[0].latitude;
 
             const project = (lat: number, lon: number) => {
+              // Anchor at user's current latitude when available so the user
+              // appears at the bottom and the upcoming route is drawn above.
+              const anchorLat = currentPosition ? currentPosition.latitude : visibleTrackPoints[0].latitude;
 
-            const y = svgHeight - padding - ((lat - anchorLat) / latRange) * (svgHeight - padding * 2);
+              // Use a symmetric lat span around the anchor so north/south points
+              // fit into the SVG; avoid division by zero.
+              const spanTop = Math.max(maxLat - anchorLat, 0);
+              const spanBottom = Math.max(anchorLat - minLat, 0);
+              const latSpan = Math.max(spanTop, spanBottom, 1e-6);
 
-  // Strong vertical bias: keep x near center
-              const x = svgWidth / 2 + ((lon - (minLon + maxLon) / 2) / lonRange) * 40; // <- horizontal compression
-              return { x, y };
+              // Positive (lat > anchor) should map upward (smaller y).
+              const normalized = (lat - anchorLat) / latSpan; // can be negative
+              const y = svgHeight - padding - normalized * (svgHeight - padding * 2);
+
+              const centerLon = (minLon + maxLon) / 2;
+              const xSpread = (svgWidth / 2 - padding) * 0.5;
+              const x = svgWidth / 2 + ((lon - centerLon) / lonRange) * xSpread;
+
+              // Clamp inside padding
+              const cx = Math.max(padding, Math.min(svgWidth - padding, x));
+              const cy = Math.max(padding, Math.min(svgHeight - padding, y));
+
+              return { x: cx, y: cy };
             };
 
       return (
         <Svg height={svgHeight} width={svgWidth}>
-          {/* ROUTE LINES */}
-          {lineCoords.map((p, index) => {
-            if (index === 0) return null;
-            const curr = project(p.latitude, p.longitude);
-            const prev = project(lineCoords[index - 1].latitude, lineCoords[index - 1].longitude);
+          {/* Build projected points and include user as bottom-center anchor (when available) */}
+          {
+            (() => {
+              const projected = lineCoords.map((p) => project(p.latitude, p.longitude));
+              const userProj = currentPosition ? { x: svgWidth / 2, y: svgHeight - 10 } : null;
 
-            return (
-              <Line
-                key={`line-${index}`}
-                x1={prev.x}
-                y1={prev.y}
-                x2={curr.x}
-                y2={curr.y}
-                stroke="#1E90FF"
-                strokeWidth={3}
-              />
-            );
-          })}
+              const allPoints = userProj ? [userProj, ...projected] : projected;
 
-          {/* BLUE DOTS */}
-          {lineCoords.map((p, idx) => {
-            const pt = project(p.latitude, p.longitude);
-            return (
-              <Circle
-                key={`tp-${idx}`}
-                cx={pt.x}
-                cy={pt.y}
-                r={4}
-                fill="#1E90FF"
-              />
-            );
-          })}
+              // Helper: compute angle in degrees from p1 to p2 (0° = up/north)
+              const getAngle = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                // atan2(dx, -dy) because y increases downward in SVG
+                return (Math.atan2(dx, -dy) * 180) / Math.PI;
+              };
 
-          {/* RED USER DOT (fixed at bottom center) */}
-          {currentPosition && (
-            <Circle
-              cx={svgWidth / 2}
-              cy={svgHeight - 10}
-              r={6}
-              fill="red"
-            />
-          )}
+              // Helper: create arrow polygon points
+              const createArrow = (x: number, y: number, angle: number, size: number = 5) => {
+                const rad = (angle * Math.PI) / 180;
+                const cos = Math.cos(rad);
+                const sin = Math.sin(rad);
+                // Arrow pointing in direction of angle
+                const tip = { x: x + sin * size, y: y - cos * size };
+                const left = {
+                  x: x + (sin - cos) * (size / 1.5),
+                  y: y - (cos + sin) * (size / 1.5),
+                };
+                const right = {
+                  x: x + (sin + cos) * (size / 1.5),
+                  y: y - (cos - sin) * (size / 1.5),
+                };
+                // Return as string for SVG Polygon points attribute
+                return `${tip.x},${tip.y} ${left.x},${left.y} ${right.x},${right.y}`;
+              };
+
+              return (
+                <>
+                  {/* ROUTE LINES (connect user -> first TP -> next TP ...) */}
+                  {allPoints.map((pt, i) => {
+                    if (i === 0) return null;
+                    const prev = allPoints[i - 1];
+                    const curr = allPoints[i];
+                    return (
+                      <Line
+                        key={`line-${i}`}
+                        x1={prev.x}
+                        y1={prev.y}
+                        x2={curr.x}
+                        y2={curr.y}
+                        stroke="#1E90FF"
+                        strokeWidth={3}
+                      />
+                    );
+                  })}
+
+                  {/* ARROW MARKERS along the route (every 100m) */}
+                  {
+                    (() => {
+                      const arrows = [];
+                      let distanceAccum = 0;
+                      const arrowDistance = 50; // meters
+
+                      for (let i = 1; i < lineCoords.length; i++) {
+                        const prev = lineCoords[i - 1];
+                        const curr = lineCoords[i];
+
+                        // Calculate distance in meters
+                        const segDist = getDistance(
+                          { latitude: prev.latitude, longitude: prev.longitude },
+                          { latitude: curr.latitude, longitude: curr.longitude }
+                        );
+
+                        distanceAccum += segDist;
+
+                        // Place arrow if we've accumulated 100m or more
+                        while (distanceAccum >= arrowDistance) {
+                          const prevProj = project(prev.latitude, prev.longitude);
+                          const currProj = project(curr.latitude, curr.longitude);
+                          const angle = getAngle(prevProj, currProj);
+                          const arrowPoints = createArrow(currProj.x, currProj.y, angle, 12);
+
+                          arrows.push(
+                            <Polygon
+                              key={`arrow-${arrows.length}`}
+                              points={arrowPoints}
+                              fill="#FF6B35"
+                              stroke="#FF6B35"
+                              strokeWidth={1}
+                            />
+                          );
+
+                          distanceAccum -= arrowDistance;
+                        }
+                      }
+
+                      return arrows;
+                    })()
+                  }
+
+                  {/* BLUE DOTS */}
+                  {projected.map((pt, idx) => (
+                    <Circle key={`tp-${idx}`} cx={pt.x} cy={pt.y} r={4} fill="#1E90FF" />
+                  ))}
+
+                  {/* RED USER DOT (fixed at bottom center) */}
+                  {userProj && <Circle cx={userProj.x} cy={userProj.y} r={6} fill="red" />}
+                </>
+              );
+            })()
+          }
         </Svg>
       );
           

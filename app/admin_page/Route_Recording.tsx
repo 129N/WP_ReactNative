@@ -20,7 +20,7 @@ import { Alert, Animated, StyleSheet, Text, TouchableOpacity, View } from "react
 
 
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Magnetometer } from "expo-sensors";
+import { Gyroscope, Magnetometer } from "expo-sensors";
 import { BASE_URL } from "./newfileloader";
 
     const LOCATION_TASK = "ROUTE_RECORDING_TASK";
@@ -61,9 +61,11 @@ const [FileID, setUploadedFileId] = useState();
 //Gyroscope 
 const [heading, setHeading] = useState<number | null>(null);
 const magnetometerSub = useRef<any>(null);
+const gyroSub = useRef<any>(null);
 
 // Ture False appear button
     const [active, setActive] = useState(false);
+    const [data, setData] = useState({x:0, y:0, z:0});
 
     useEffect(()=>{
         return () => {stopGpsWatcher();};
@@ -123,6 +125,10 @@ const rotateInterpolate = rotation.interpolate({
       const angle = calculateHeading(data);
       setHeading(Math.round(angle));
     });
+
+    gyroSub.current = Gyroscope.addListener((gyroData) => {
+      setData(gyroData);
+    });
   };
 
   const pauseRecording = async() => {
@@ -161,6 +167,11 @@ const rotateInterpolate = rotation.interpolate({
     if (magnetometerSub.current) {
       magnetometerSub.current.remove();
       magnetometerSub.current = null;
+    }
+
+    if (gyroSub.current) {
+      gyroSub.current.remove();
+      gyroSub.current = null;
     }
 
   };
@@ -444,7 +455,13 @@ const saveGPXToFile = async (gpxString: string): Promise<string> => {
   <Text style={styles.headingText}>
     Heading: {heading == null ? "--" : `${heading}°`}
   </Text>
+  {/* Gyroscope Data Display */}
+<Text style={{ textAlign: "center", marginVertical: 10, fontSize: 14, color: "#666" }}>
+  Gyroscope - X: {data.x.toFixed(2)} | Y: {data.y.toFixed(2)} | Z: {data.z.toFixed(2)}
+</Text>
 </View>
+
+
 
     
     {/* Button Section */}
